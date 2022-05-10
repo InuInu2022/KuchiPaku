@@ -1,0 +1,30 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build",
+			"type": "shell",
+			"command": "dotnet msbuild",
+			"args": [
+				// Ask msbuild to generate full paths for file names.
+				"/property:GenerateFullPaths=true",
+				"/t:build",
+				// デバッグビルド
+				"/p:Configuration=Debug",
+				// Do not generate summary otherwise it leads to duplicate errors in Problems panel
+				"/consoleloggerparameters:NoSummary"
+			],
+			"group": "build",
+			"presentation": {
+				// 出力を表示する統合ターミナルが常に表示され、タスクの実行ごとに新しいターミナルが作成されます。
+				"reveal": "always",
+				// 実行後にターミナルウィンドウにフォーカスを移します（
+				"focus": true,
+			},
+			// Use the standard MS compiler pattern to detect errors, warnings and infos
+			"problemMatcher": "$msCompile"
+		}
+	]
+}

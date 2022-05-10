@@ -1,0 +1,30 @@
+{
+	"$type": "YukkuriMovieMaker.Project.Items.TachieFaceItem, YukkuriMovieMaker",
+	"CharacterName": "YourCharaNameHere",
+	"TachieFaceParameter": {
+	  "$type": "YukkuriMovieMaker.Plugin.Tachie.AnimationTachie.FaceParameter, YukkuriMovieMaker.Plugin.Tachie.AnimationTachie",
+	  "EyeAnimation": "Default",
+	  "MouthAnimation": "Default",
+	  "Eyebrow": null,
+	  "Eye": null,
+	  "Mouth": "path/to/mouth/dir",
+	  "Hair": null,
+	  "Complexion": null,
+	  "Body": null,
+	  "Back1": null,
+	  "Back2": null,
+	  "Back3": null,
+	  "Etc1": null,
+	  "Etc2": null,
+	  "Etc3": null
+	},
+	"TachieFaceEffects": [],
+	"Group": 0,
+	"Frame": 0,
+	"Layer": 0,
+	"Length": 0,
+	"PlaybackRate": 100.0,
+	"ContentOffset": "00:00:00",
+	"IsLocked": false,
+	"IsHidden": false
+}
