@@ -20,6 +20,7 @@
     <SupportedCultures>en-US;ja</SupportedCultures>
     <!-- MinVer -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerMinimumMajorMinor>0.1</MinVerMinimumMajorMinor>
   </PropertyGroup>
   <Target Name="RemovePublishDirBeforeBuild"
           BeforeTargets="BeforeBuild">
