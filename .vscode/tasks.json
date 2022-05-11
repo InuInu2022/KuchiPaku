@@ -4,7 +4,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "build",
+			"label": "build-old",
 			"type": "shell",
 			"command": "dotnet msbuild",
 			"args": [
@@ -25,6 +25,35 @@
 			},
 			// Use the standard MS compiler pattern to detect errors, warnings and infos
 			"problemMatcher": "$msCompile"
-		}
+		},
+		{
+			"label": "build",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"build",
+				"${workspaceFolder}/KuchiPaku/KuchiPaku.csproj",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary",
+				//"/property:Configuration=Release",
+				//"/property:Platform=win10-x64",
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "publish",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"publish",
+				"${workspaceFolder}/KuchiPaku/KuchiPaku.csproj",
+				"/property:GenerateFullPaths=true",
+				//"/consoleloggerparameters:NoSummary",
+				//"/property:Configuration=Release",
+				//"/property:TargetFramework=net48",
+				//"/property:Platform=win10-x64",
+			],
+			"problemMatcher": "$msCompile"
+		},
 	]
 }
