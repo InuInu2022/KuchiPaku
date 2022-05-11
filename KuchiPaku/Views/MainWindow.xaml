@@ -18,11 +18,12 @@
   xmlns:ui="http://schemas.modernwpf.com/2019"
   xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
   xmlns:viewmodels="clr-namespace:KuchiPaku.ViewModels"
-  xmlns:converters="clr-namespace:KuchiPaku.Views.Converters"
   mc:Ignorable="d"
-  Title="KuchiPaku" Height="500" Width="800"
+  ui:WindowHelper.UseModernWindowStyle="True"
+  Height="500" Width="800"
   fw:AcrylicWindow.Enabled="True"
   fw:PointerTracker.Enabled="True"
+  Title="{Binding WindowTitle}"
   ResizeMode="CanResizeWithGrip">
 
   <Window.DataContext>

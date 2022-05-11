@@ -32,6 +32,7 @@ public enum Page{
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public sealed class MainWindowViewModel
 {
+	public string WindowTitle { get; set; }
 	public Command? OpenYmmp { get; set; }
 	public string? TargetYmmpFileName { get; set; }
 
@@ -66,6 +67,7 @@ public sealed class MainWindowViewModel
 
 	public MainWindowViewModel()
 	{
+		WindowTitle = AppUtil.GetWindowTitle();
 		Characters = new ObservableCollection<CharacterListViewModel>();
 		LipSyncImages = new ObservableCollection<LipSyncImageViewModel>();
 		LipSyncSettings = new();
