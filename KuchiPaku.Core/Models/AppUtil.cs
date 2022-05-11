@@ -7,10 +7,10 @@ namespace KuchiPaku.Models;
 public class AppUtil
 {
     public static string GetWindowTitle(){
-        var assembly = Assembly.GetExecutingAssembly().GetName();
+        var assembly = Assembly.GetEntryAssembly().GetName();
 
         var versionInfo = Assembly
-            .GetExecutingAssembly()
+            .GetEntryAssembly()
             .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute))
             .Cast<AssemblyInformationalVersionAttribute>()
             .FirstOrDefault();
