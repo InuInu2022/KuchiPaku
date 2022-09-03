@@ -99,6 +99,8 @@ public sealed class MainWindowViewModel
 			var ymmChara = await YmmpUtil.ParseCharactersAsync(CurrentYmmp);
 			var viewList = ymmChara
 				.Where(v => v.TachieCharacterParameter is not null)
+				//TODO:support psd tachie
+				.Where(v => v.TachieType != "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachiePlugin, YukkuriMovieMaker.Plugin.Tachie.Psd, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
 				.Select(v => new CharacterListViewModel
 					{
 						Name = v.Name,
@@ -117,7 +119,7 @@ public sealed class MainWindowViewModel
 						LipSyncOption.GetDefault(
 							v.Name ?? "",
 							Path.Combine(
-								v.DirectoryPath!,
+								v.DirectoryPath ?? "",
 								"口"
 							)
 								?? "",
@@ -280,7 +282,7 @@ public sealed class MainWindowViewModel
 			})
 			;
 			//*/
-		
+
 		sw.Stop();
 		Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds.ToString()}");
 	}
@@ -307,11 +309,19 @@ public sealed class MainWindowViewModel
 		//TODO:将来的にルール設定から追加するようにする
 
 		var path = chara.DirectoryPath!;
+		if (path is null || !Directory.Exists(path))
+		{
+			//TODO:パスが無いのをユーザー通知
+			return;
+		}
 
 		var kuchiDir = await Task.Run(()
 			=> Directory.GetDirectories(path, "口").FirstOrDefault());
 
-		if(kuchiDir is null)return;
+		if(kuchiDir is null)
+		{
+			return;
+		}
 
 		string[] EXTS = { ".png",".gif",",webp"};
 
@@ -397,7 +407,7 @@ public sealed class MainWindowViewModel
 			);
 		*/
 
-		
+
 	}
 
 	[PropertyChanged(nameof(CurrentConsonantOption))]
