@@ -220,7 +220,7 @@ public sealed class MainWindowViewModel
 		});
 
 		OpenWebsite = CommandFactory.Create<RoutedEventArgs>(async _
-			=> await OpenAsync("https://inuinu2022.github.io/NodoAme.Home/#/"));
+			=> await OpenAsync("https://github.com/InuInu2022/KuchiPaku"));
 	}
 
 	private static async ValueTask OpenAsync(string path){
