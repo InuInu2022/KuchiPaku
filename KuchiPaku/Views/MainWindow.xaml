@@ -44,7 +44,7 @@
   </epoxy:EventBinder.Events>
   -->
 
-  
+
    <ui:NavigationView
     x:Name="NavView"
     IsBackButtonVisible="Collapsed"
@@ -66,13 +66,13 @@
     </ui:NavigationView.MenuItems>
     -->
 
-    <ScrollViewer 
+    <ScrollViewer
       Background="{DynamicResource SystemBaseLowColorBrush}">
       <ui:SimpleStackPanel
         Width="Auto"
         Margin="5,0"
         >
-        <ui:CommandBar 
+        <ui:CommandBar
             DefaultLabelPosition="Bottom"
             Background="{DynamicResource SystemBaseLowColorBrush}"
           >
@@ -86,16 +86,16 @@
 
           <ui:AppBarElementContainer>
             <TextBox x:Name="targetYmmpFileName"
-                ui:ControlHelper.PlaceholderText=".ymmpファイルを選択してください" 
+                ui:ControlHelper.PlaceholderText=".ymmpファイルを選択してください"
                 Text="{Binding TargetYmmpFileName}"
                 Width="Auto"
-                
+
                 FontSize="12"
                 Margin="5"
                 IsReadOnly="True"
             />
           </ui:AppBarElementContainer>
-          
+
           <ui:AppBarButton
             x:Name="ButtonSave"
             Label="Save ymmp"
@@ -124,7 +124,7 @@
                     VerticalAlignment="Center"
                     IsOn="{Binding IsOpenWithSave}" />
             </ui:SimpleStackPanel>
-            
+
           </ui:AppBarElementContainer>
 
         </ui:CommandBar>
@@ -137,7 +137,7 @@
                 <TextBlock Text="キャラ口パク設定" FontSize="20" />
               </ui:SimpleStackPanel>
             </GroupBox.Header>
-            
+
             <ui:SimpleStackPanel Orientation="Horizontal">
               <ui:SimpleStackPanel>
                 <ListView x:Name="Character"
@@ -167,7 +167,7 @@
                     <ComboBoxItem Content="口パク設定2" />
                   </ComboBox>
                   <ui:CommandBar DefaultLabelPosition="Right">
-                    <ui:AppBarButton 
+                    <ui:AppBarButton
                       Label="Add"
                       Icon="Add"
                       IsEnabled="False"
@@ -241,7 +241,7 @@
                                 FontSize="10"
                                 Width="70"
                                 />
-                              <Image 
+                              <Image
                                 Source="{Binding ImageSrc}"
                                 Width="100"
                                 Height="25"
@@ -285,11 +285,17 @@
                       Style="{StaticResource ButtonRevealStyle}"
                       Command="{Binding OpenLicenses}" />
               <Button x:Name="openWebsite"
-                      Content="公式サイト"
+                      Content="KuchiPaku公式サイト"
                       Margin="10"
                       Padding="5"
                       Style="{StaticResource ButtonRevealStyle}"
                       Command="{Binding OpenWebsite}" />
+              <Button x:Name="openYMM4Website"
+                      Content="YMM4公式サイト"
+                      Margin="10"
+                      Padding="5"
+                      Style="{StaticResource ButtonRevealStyle}"
+                      Command="{Binding OpenYMM4Website}" />
             </WrapPanel>
           </Expander>
           </ui:SimpleStackPanel>
@@ -300,10 +306,10 @@
 
 
   </ui:NavigationView>
-  
+
   <!--
   <DockPanel>
-    <ui:NavigationView 
+    <ui:NavigationView
       x:Name="nvSample"
       PaneDisplayMode="LeftCompact"
       >

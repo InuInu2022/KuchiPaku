@@ -50,6 +50,7 @@ public sealed class MainWindowViewModel
 	public Command? OpenLicenses { get; set; }
 
 	public Command? OpenWebsite { get; set; }
+	public Command? OpenYMM4Website { get; set; }
 
 	public bool IsSaveBackup { get; set; } = true;
 	public bool IsOpenWithSave { get; set; } = true;
@@ -221,6 +222,9 @@ public sealed class MainWindowViewModel
 
 		OpenWebsite = CommandFactory.Create<RoutedEventArgs>(async _
 			=> await OpenAsync("https://github.com/InuInu2022/KuchiPaku"));
+
+		OpenYMM4Website = CommandFactory.Create<RoutedEventArgs>(async _
+			=> await OpenAsync("https://manjubox.net/ymm4/"));
 	}
 
 	private static async ValueTask OpenAsync(string path){
