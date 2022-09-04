@@ -6,6 +6,9 @@
     <LangVersion>latest</LangVersion>
     <Nullable>Enable</Nullable>
     <UseWPF>true</UseWPF>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
@@ -24,7 +27,6 @@
   </PropertyGroup>
   <Target Name="RemovePublishDirBeforeBuild" BeforeTargets="BeforeBuild">
     <RemoveDir Directories="$(OutputPath)/publish/" />
-    <Delete Files="$(OutputPath)/publish/usersettings.json" />
     <Message Text="RemovePublishDirBeforeBuild" Importance="high" />
   </Target>
   <Target Name="RemoveTranslationsAfterBuild" AfterTargets="AfterBuild">
