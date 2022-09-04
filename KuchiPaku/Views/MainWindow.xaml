@@ -17,6 +17,7 @@
   xmlns:epoxy="https://github.com/kekyo/Epoxy"
   xmlns:ui="http://schemas.modernwpf.com/2019"
   xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
+  xmlns:controls="clr-namespace:Enterwell.Clients.Wpf.Notifications.Controls;assembly=Enterwell.Clients.Wpf.Notifications"
   xmlns:viewmodels="clr-namespace:KuchiPaku.ViewModels"
   mc:Ignorable="d"
   ui:WindowHelper.UseModernWindowStyle="True"
@@ -44,268 +45,271 @@
   </epoxy:EventBinder.Events>
   -->
 
+  <Grid>
+    <Border Grid.Column="1" Panel.ZIndex="2">
+        <controls:NotificationMessageContainer Manager="{Binding Manager}" />
+    </Border>
+    <ui:NavigationView
+      x:Name="NavView"
+      IsBackButtonVisible="Collapsed"
+      IsBackEnabled="False"
+      IsPaneOpen="True"
+      Background="Transparent"
+    >
+      <!-- LEFT NAVIGATION -->
+      <!--
+      <ui:NavigationView.MenuItems>
+        <ui:NavigationViewItem Icon="OpenFile" Content="Sample Item 1">
+          <epoxy:EventBinder.Events>
+            <epoxy:Event EventName="PointerPressed" Command="{Binding OpenYmmp}" />
+          </epoxy:EventBinder.Events>
+        </ui:NavigationViewItem>
+        <ui:NavigationViewItem Icon="ContactInfo" Content="Sample Item 2" />
+        <ui:NavigationViewItem Icon="List" Content="Sample Item 3" />
+        <ui:NavigationViewItem Icon="Save" Content="Sample Item 4" />
+      </ui:NavigationView.MenuItems>
+      -->
 
-   <ui:NavigationView
-    x:Name="NavView"
-    IsBackButtonVisible="Collapsed"
-    IsBackEnabled="False"
-    IsPaneOpen="True"
-    Background="Transparent"
-  >
-    <!-- LEFT NAVIGATION -->
-    <!--
-    <ui:NavigationView.MenuItems>
-      <ui:NavigationViewItem Icon="OpenFile" Content="Sample Item 1">
-        <epoxy:EventBinder.Events>
-          <epoxy:Event EventName="PointerPressed" Command="{Binding OpenYmmp}" />
-        </epoxy:EventBinder.Events>
-      </ui:NavigationViewItem>
-      <ui:NavigationViewItem Icon="ContactInfo" Content="Sample Item 2" />
-      <ui:NavigationViewItem Icon="List" Content="Sample Item 3" />
-      <ui:NavigationViewItem Icon="Save" Content="Sample Item 4" />
-    </ui:NavigationView.MenuItems>
-    -->
-
-    <ScrollViewer
-      Background="{DynamicResource SystemBaseLowColorBrush}">
-      <ui:SimpleStackPanel
-        Width="Auto"
-        Margin="5,0"
-        >
-        <ui:CommandBar
-            DefaultLabelPosition="Bottom"
-            Background="{DynamicResource SystemBaseLowColorBrush}"
+      <ScrollViewer
+        Background="{DynamicResource SystemBaseLowColorBrush}">
+        <ui:SimpleStackPanel
+          Width="Auto"
+          Margin="5,0"
           >
-          <ui:AppBarButton
-            x:Name="OpenYmmp"
-            Label="Open ymmp"
-            Icon="OpenFile"
-            LabelPosition="Default"
-            Command="{Binding OpenYmmp}"
-          />
-
-          <ui:AppBarElementContainer>
-            <TextBox x:Name="targetYmmpFileName"
-                ui:ControlHelper.PlaceholderText=".ymmpファイルを選択してください"
-                Text="{Binding TargetYmmpFileName}"
-                Width="Auto"
-
-                FontSize="12"
-                Margin="5"
-                IsReadOnly="True"
+          <ui:CommandBar
+              DefaultLabelPosition="Bottom"
+              Background="{DynamicResource SystemBaseLowColorBrush}"
+            >
+            <ui:AppBarButton
+              x:Name="OpenYmmp"
+              Label="Open ymmp"
+              Icon="OpenFile"
+              LabelPosition="Default"
+              Command="{Binding OpenYmmp}"
             />
-          </ui:AppBarElementContainer>
 
-          <ui:AppBarButton
-            x:Name="ButtonSave"
-            Label="Save ymmp"
-            Icon="Save"
-            Command="{Binding SaveYmmp}"
-          />
+            <ui:AppBarButton
+              x:Name="ButtonSave"
+              Label="Save ymmp"
+              Icon="Save"
+              Command="{Binding SaveYmmp}"
+            />
 
-          <ui:AppBarElementContainer
-            VerticalAlignment="Center"
-          >
-            <ui:SimpleStackPanel>
-                <ui:ToggleSwitch
-                    x:Name="toggleSwitch"
-                    OffContent="上書きする"
-                    OnContent="バックアップ保存"
-                    FontSize="11"
-                    Margin="5,0"
-                    VerticalAlignment="Center"
-                    IsOn="{Binding IsSaveBackup}" />
-                <ui:ToggleSwitch
-                    x:Name="toggleOpenWithSave"
-                    OffContent="保存後YMM4で開く"
-                    OnContent="保存後YMM4で開く"
-                    FontSize="11"
-                    Margin="5,0"
-                    VerticalAlignment="Center"
-                    IsOn="{Binding IsOpenWithSave}" />
-            </ui:SimpleStackPanel>
-
-          </ui:AppBarElementContainer>
-
-        </ui:CommandBar>
-        <ui:SimpleStackPanel Orientation="Horizontal">
-          <!-- キャラ口パク設定 -->
-          <GroupBox>
-            <GroupBox.Header>
-              <ui:SimpleStackPanel Orientation="Horizontal">
-                <ui:SymbolIcon Symbol="ContactInfo" Margin="5" />
-                <TextBlock Text="キャラ口パク設定" FontSize="20" />
-              </ui:SimpleStackPanel>
-            </GroupBox.Header>
-
-            <ui:SimpleStackPanel Orientation="Horizontal">
+            <ui:AppBarElementContainer
+              VerticalAlignment="Center"
+            >
               <ui:SimpleStackPanel>
-                <ListView x:Name="Character"
+                  <ui:ToggleSwitch
+                      x:Name="toggleSwitch"
+                      OffContent="上書きする"
+                      OnContent="バックアップ保存"
+                      FontSize="11"
+                      Margin="5,0"
+                      VerticalAlignment="Center"
+                      IsOn="{Binding IsSaveBackup}" />
+                  <ui:ToggleSwitch
+                      x:Name="toggleOpenWithSave"
+                      OffContent="保存後YMM4で開く"
+                      OnContent="保存後YMM4で開く"
+                      FontSize="11"
+                      Margin="5,0"
+                      VerticalAlignment="Center"
+                      IsOn="{Binding IsOpenWithSave}" />
+              </ui:SimpleStackPanel>
+
+            </ui:AppBarElementContainer>
+
+          </ui:CommandBar>
+          <TextBox x:Name="targetYmmpFileName"
+              ui:ControlHelper.PlaceholderText=".ymmpファイルを選択してください"
+              Text="{Binding TargetYmmpFileName}"
+              Width="Auto"
+
+              FontSize="12"
+              Margin="5"
+              IsReadOnly="True"
+          />
+          <ui:SimpleStackPanel Orientation="Horizontal">
+            <!-- キャラ口パク設定 -->
+            <GroupBox>
+              <GroupBox.Header>
+                <ui:SimpleStackPanel Orientation="Horizontal">
+                  <ui:SymbolIcon Symbol="ContactInfo" Margin="5" />
+                  <TextBlock Text="キャラ口パク設定" FontSize="20" />
+                </ui:SimpleStackPanel>
+              </GroupBox.Header>
+
+              <ui:SimpleStackPanel Orientation="Horizontal">
+                <ui:SimpleStackPanel>
+                  <ListView x:Name="Character"
+                    MinHeight="100"
+                    Width="200"
+                    BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
+                    Background="{DynamicResource SystemChromeLowColorBrush}"
+                    ItemsSource="{Binding Characters}"
+                    SelectedItem="{Binding SelectedCharaItem}"
+                  >
+                    <ListView.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                          <TextBlock
+                            Margin="5"
+                            Text="{Binding Name}"/>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ListView.ItemTemplate>
+                  </ListView>
+                  <Separator />
+                  <ui:SimpleStackPanel Orientation="Horizontal">
+                    <ComboBox x:Name="LipSyncSetting"
+                      SelectedIndex="0" Margin="5"
+                      IsEnabled="False">
+                      <ComboBoxItem Content="口パク設定1" />
+                      <ComboBoxItem Content="口パク設定2" />
+                    </ComboBox>
+                    <ui:CommandBar DefaultLabelPosition="Right">
+                      <ui:AppBarButton
+                        Label="Add"
+                        Icon="Add"
+                        IsEnabled="False"
+                      />
+                    </ui:CommandBar>
+                  </ui:SimpleStackPanel>
+                </ui:SimpleStackPanel>
+              </ui:SimpleStackPanel>
+            </GroupBox>
+            <!-- 口パク画像設定 -->
+            <GroupBox>
+              <GroupBox.Header>
+                <ui:SimpleStackPanel Orientation="Horizontal">
+                  <ui:SymbolIcon Symbol="Setting"
+                    Margin="2" />
+                  <TextBlock
+                    Text="{Binding SelectedItem.Name, ElementName=Character}"
+                    FontSize="20" />
+                  <Separator
+                    Width="20"/>
+                  <TextBlock
+                    Text="{Binding SelectedItem.Content, ElementName=LipSyncSetting}"
+                    FontSize="20" />
+                </ui:SimpleStackPanel>
+              </GroupBox.Header>
+
+              <ui:SimpleStackPanel
+                Margin="10,0,0,0"
+                >
+                <ui:SimpleStackPanel Orientation="Horizontal"
+                  IsEnabled="False"
+                  >
+                  <Label Content="口パクルール" Margin="5" />
+                  <ComboBox x:Name="LipSyncRule"
+                    SelectedIndex="0"
+                    Width="Auto"
+                  >
+                    <ListBoxItem Content="標準（PSDToolKit互換）" ToolTip="PSDToolKit互換" />
+                    <ListBoxItem Content="あいうえお口パク2" />
+                  </ComboBox>
+                </ui:SimpleStackPanel>
+
+                <ListView x:Name="LipSyncImage"
                   MinHeight="100"
-                  Width="200"
+                  Width="300"
+                  BorderThickness="1"
                   BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
                   Background="{DynamicResource SystemChromeLowColorBrush}"
-                  ItemsSource="{Binding Characters}"
-                  SelectedItem="{Binding SelectedCharaItem}"
+                  ItemsSource="{Binding LipSyncImages}"
                 >
+
                   <ListView.ItemTemplate>
                     <DataTemplate>
                       <StackPanel Orientation="Horizontal">
                         <TextBlock
                           Margin="5"
+                          MinWidth="50"
                           Text="{Binding Name}"/>
+                        <ComboBox
+                          MinWidth="200"
+                          MaxWidth="300"
+                          Margin="0"
+                          ItemsSource="{Binding ImageList}"
+                          SelectedIndex="{Binding SelectedItemIndex}"
+                          >
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                              <StackPanel Orientation="Horizontal">
+                                <TextBlock
+                                  Text="{Binding ImageName}"
+                                  FontSize="10"
+                                  Width="70"
+                                  />
+                                <Image
+                                  Source="{Binding ImageSrc}"
+                                  Width="100"
+                                  Height="25"
+                                  />
+                              </StackPanel>
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                        </ComboBox>
                       </StackPanel>
                     </DataTemplate>
                   </ListView.ItemTemplate>
                 </ListView>
-                <Separator />
-                <ui:SimpleStackPanel Orientation="Horizontal">
-                  <ComboBox x:Name="LipSyncSetting"
-                    SelectedIndex="0" Margin="5"
-                    IsEnabled="False">
-                    <ComboBoxItem Content="口パク設定1" />
-                    <ComboBoxItem Content="口パク設定2" />
-                  </ComboBox>
-                  <ui:CommandBar DefaultLabelPosition="Right">
-                    <ui:AppBarButton
-                      Label="Add"
-                      Icon="Add"
-                      IsEnabled="False"
-                    />
-                  </ui:CommandBar>
+
+                <ui:SimpleStackPanel
+                  Orientation="Horizontal">
+                  <Label Content="オプション" Margin="5" />
+                  <ComboBox
+                      ItemsSource="{Binding ConsonantOptionList}"
+                      SelectedItem="{Binding CurrentConsonantOption}" />
                 </ui:SimpleStackPanel>
               </ui:SimpleStackPanel>
-            </ui:SimpleStackPanel>
+            </GroupBox>
+          </ui:SimpleStackPanel>
+
+          <GroupBox Header="挿入レイヤー設定">
+            <ui:SimpleStackPanel></ui:SimpleStackPanel>
           </GroupBox>
-          <!-- 口パク画像設定 -->
-          <GroupBox>
-            <GroupBox.Header>
-              <ui:SimpleStackPanel Orientation="Horizontal">
-                <ui:SymbolIcon Symbol="Setting"
-                  Margin="2" />
-                <TextBlock
-                  Text="{Binding SelectedItem.Name, ElementName=Character}"
-                  FontSize="20" />
-                <Separator
-                  Width="20"/>
-                <TextBlock
-                  Text="{Binding SelectedItem.Content, ElementName=LipSyncSetting}"
-                  FontSize="20" />
-              </ui:SimpleStackPanel>
-            </GroupBox.Header>
-
-            <ui:SimpleStackPanel
-              Margin="10,0,0,0"
-              >
-              <ui:SimpleStackPanel Orientation="Horizontal"
-                IsEnabled="False"
-                >
-                <Label Content="口パクルール" Margin="5" />
-                <ComboBox x:Name="LipSyncRule"
-                  SelectedIndex="0"
-                  Width="Auto"
-                >
-                  <ListBoxItem Content="標準（PSDToolKit互換）" ToolTip="PSDToolKit互換" />
-                  <ListBoxItem Content="あいうえお口パク2" />
-                </ComboBox>
-              </ui:SimpleStackPanel>
-
-              <ListView x:Name="LipSyncImage"
-                MinHeight="100"
-                Width="300"
-                BorderThickness="1"
-                BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
-                Background="{DynamicResource SystemChromeLowColorBrush}"
-                ItemsSource="{Binding LipSyncImages}"
-              >
-
-                <ListView.ItemTemplate>
-                  <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock
-                        Margin="5"
-                        MinWidth="50"
-                        Text="{Binding Name}"/>
-                      <ComboBox
-                        MinWidth="200"
-                        MaxWidth="300"
-                        Margin="0"
-                        ItemsSource="{Binding ImageList}"
-                        SelectedIndex="{Binding SelectedItemIndex}"
-                        >
-                        <ComboBox.ItemTemplate>
-                          <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                              <TextBlock
-                                Text="{Binding ImageName}"
-                                FontSize="10"
-                                Width="70"
-                                />
-                              <Image
-                                Source="{Binding ImageSrc}"
-                                Width="100"
-                                Height="25"
-                                />
-                            </StackPanel>
-                          </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                      </ComboBox>
-                    </StackPanel>
-                  </DataTemplate>
-                </ListView.ItemTemplate>
-              </ListView>
-
-              <ui:SimpleStackPanel
-                Orientation="Horizontal">
-                <Label Content="オプション" Margin="5" />
-                <ComboBox
-                    ItemsSource="{Binding ConsonantOptionList}"
-                    SelectedItem="{Binding CurrentConsonantOption}" />
-              </ui:SimpleStackPanel>
+          <GroupBox Header="オプション">
+            <ui:SimpleStackPanel>
+            <Expander x:Name="otherOptions"
+                      Header="そのほか"
+                      ExpandDirection="Down"
+                      IsExpanded="False"
+                      VerticalAlignment="Top"
+                      Margin="10,0,0,0">
+              <WrapPanel fw:PointerTracker.Enabled="True">
+                <Button x:Name="openLicense"
+                        Content="ライセンス"
+                        Margin="10"
+                        Padding="5"
+                        Style="{StaticResource ButtonRevealStyle}"
+                        Command="{Binding OpenLicenses}" />
+                <Button x:Name="openWebsite"
+                        Content="KuchiPaku公式サイト"
+                        Margin="10"
+                        Padding="5"
+                        Style="{StaticResource ButtonRevealStyle}"
+                        Command="{Binding OpenWebsite}" />
+                <Button x:Name="openYMM4Website"
+                        Content="YMM4公式サイト"
+                        Margin="10"
+                        Padding="5"
+                        Style="{StaticResource ButtonRevealStyle}"
+                        Command="{Binding OpenYMM4Website}" />
+              </WrapPanel>
+            </Expander>
             </ui:SimpleStackPanel>
           </GroupBox>
         </ui:SimpleStackPanel>
-
-        <GroupBox Header="挿入レイヤー設定">
-          <ui:SimpleStackPanel></ui:SimpleStackPanel>
-        </GroupBox>
-        <GroupBox Header="オプション">
-          <ui:SimpleStackPanel>
-          <Expander x:Name="otherOptions"
-                    Header="そのほか"
-                    ExpandDirection="Down"
-                    IsExpanded="False"
-                    VerticalAlignment="Top"
-                    Margin="10,0,0,0">
-            <WrapPanel fw:PointerTracker.Enabled="True">
-              <Button x:Name="openLicense"
-                      Content="ライセンス"
-                      Margin="10"
-                      Padding="5"
-                      Style="{StaticResource ButtonRevealStyle}"
-                      Command="{Binding OpenLicenses}" />
-              <Button x:Name="openWebsite"
-                      Content="KuchiPaku公式サイト"
-                      Margin="10"
-                      Padding="5"
-                      Style="{StaticResource ButtonRevealStyle}"
-                      Command="{Binding OpenWebsite}" />
-              <Button x:Name="openYMM4Website"
-                      Content="YMM4公式サイト"
-                      Margin="10"
-                      Padding="5"
-                      Style="{StaticResource ButtonRevealStyle}"
-                      Command="{Binding OpenYMM4Website}" />
-            </WrapPanel>
-          </Expander>
-          </ui:SimpleStackPanel>
-        </GroupBox>
-      </ui:SimpleStackPanel>
-    </ScrollViewer>
+      </ScrollViewer>
 
 
 
-  </ui:NavigationView>
+    </ui:NavigationView>
+
+  </Grid>
+
 
   <!--
   <DockPanel>

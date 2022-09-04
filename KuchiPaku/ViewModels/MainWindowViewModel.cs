@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using Enterwell.Clients.Wpf.Notifications;
 
 namespace KuchiPaku.ViewModels;
 
@@ -33,6 +34,7 @@ public enum Page{
 public sealed class MainWindowViewModel
 {
 	public string WindowTitle { get; set; }
+	public INotificationMessageManager Manager { get; set; }
 	public Command? OpenYmmp { get; set; }
 	public string? TargetYmmpFileName { get; set; }
 
@@ -69,6 +71,7 @@ public sealed class MainWindowViewModel
 	public MainWindowViewModel()
 	{
 		WindowTitle = AppUtil.GetWindowTitle();
+		Manager = new NotificationMessageManager();
 		Characters = new ObservableCollection<CharacterListViewModel>();
 		LipSyncImages = new ObservableCollection<LipSyncImageViewModel>();
 		LipSyncSettings = new();
@@ -137,10 +140,16 @@ public sealed class MainWindowViewModel
 		{
 			if (CurrentYmmp is null)
 			{
+				Manager.Warn(
+					"YMM4プロジェクトが読み込まれていません",
+					"YMM4プロジェクトファイル(.ymmp)を最初に読み込んでください。"
+				);
 				return;
 			}
 			var sw = new System.Diagnostics.Stopwatch();
 			sw.Start();
+
+			var loading = Manager.Loading("保存中", "保存しています…");
 
 			var ymmp = await YmmpUtil.CopyDeepAsync(CurrentYmmp);
 
@@ -152,6 +161,8 @@ public sealed class MainWindowViewModel
 
 			if (voiceItems is null)
 			{
+				Manager.Dismiss(loading);
+				Manager.Info("ボイスアイテムなし","対象のボイスアイテムがありませんでした。");
 				return;
 			}
 
@@ -196,10 +207,14 @@ public sealed class MainWindowViewModel
 				.Add(new CommonFileDialogFilter("YMM4プロジェクトファイル", "*.ymmp"));
 			if (csfd.ShowDialog() != CommonFileDialogResult.Ok)
 			{
+				Manager.Dismiss(loading);
 				return;
 			}
 			sw.Restart();
 			await YmmpUtil.SaveAsync(ymmp, csfd.FileName);
+
+			Manager.Dismiss(loading);
+			Manager.Info("保存成功", "保存しました", true);
 
 			sw.Stop();
 			Debug.WriteLine($"TIME[SaveAsync]:{sw.ElapsedMilliseconds.ToString()}");
@@ -315,7 +330,12 @@ public sealed class MainWindowViewModel
 		var path = chara.DirectoryPath!;
 		if (path is null || !Directory.Exists(path))
 		{
-			//TODO:パスが無いのをユーザー通知
+			//パスが無いのをユーザー通知
+			Manager
+				.Warn(
+					"ファイルのあるはずのフォルダがみつかりません",
+					"キャラの立ち絵の指定されたフォルダがありません。ファイルを丸ごと移動していませんか？"
+				);
 			return;
 		}
 
@@ -324,6 +344,11 @@ public sealed class MainWindowViewModel
 
 		if(kuchiDir is null)
 		{
+			Manager
+				.Warn(
+					"「口」フォルダがありません",
+					"口パクさせるために、「口」フォルダに画像が置いてある必要があります。"
+				);
 			return;
 		}
 
