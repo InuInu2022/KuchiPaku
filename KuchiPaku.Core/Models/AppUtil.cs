@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace KuchiPaku.Models;
 
-public class AppUtil
+public static class AppUtil
 {
     public static string GetWindowTitle(){
         var assembly = Assembly.GetEntryAssembly().GetName();
@@ -18,4 +18,3 @@ public class AppUtil
         return $"{assembly.Name} ver. {versionInfo.InformationalVersion}";
     }
 }
-

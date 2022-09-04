@@ -189,6 +189,8 @@ public sealed class MainWindowViewModel
 			//APIボイス
 			var apiVoices = await YmmpUtil.FilterAPIVoiceAsync(voiceItems);
 
+			//TODO:APIボイスの口パク生成
+
 			sw.Stop();
 			Debug.WriteLine($"TIME[FilterAPIVoiceAync]:{sw.ElapsedMilliseconds.ToString()}");
 

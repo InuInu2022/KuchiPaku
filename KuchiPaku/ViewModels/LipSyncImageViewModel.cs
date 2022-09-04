@@ -96,14 +96,12 @@ public class LipSyncImageLineViewModel
 
 	[PropertyChanged(nameof(Path))]
 	private async ValueTask PathChangedAsync(string path){
-		if(string.IsNullOrEmpty(path))return;
+		if(string.IsNullOrEmpty(path)){return;}
 
-		
 		var bitmap = await Task.Run(() =>
 		{
-			// ワーカスレッド
-			var bmp = new System.Drawing.Bitmap(path);  // Drawing.Image => Bitmap 変換
-			return bmp;
+			// Drawing.Image => Bitmap 変換
+			return new System.Drawing.Bitmap(path);
 		});
 		var rect = await Task.Run(
 			() => ThumbUtil.GetNoTransRect(bitmap)
@@ -114,7 +112,7 @@ public class LipSyncImageLineViewModel
 		bi.BeginInit();
 		bi.CacheOption = BitmapCacheOption.OnDemand;
 		bi.CreateOptions = BitmapCreateOptions.DelayCreation;
-		
+
 		bi.UriSource = new Uri(path, UriKind.RelativeOrAbsolute);
 		bi.SourceRect = new Int32Rect(rect.X,rect.Y,rect.Width,rect.Height);
 
