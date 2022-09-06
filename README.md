@@ -72,3 +72,12 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 - [NLog](https://nlog-project.org/)
 - [Json.NET](https://github.com/JamesNK/Newtonsoft.Json)
 - [MinVer](https://github.com/adamralph/minver)
+
+## 🐶Developed by InuInu
+
+- InuInu（いぬいぬ）
+  - YouTube [YouTube](https://bit.ly/InuInuMusic)
+  - Twitter [@InuInuGames](https://twitter.com/InuInuGames)
+  - Blog [note.com](https://note.com/inuinu_)
+
+<iframe width="320" height="160" src="https://ext.nicovideo.jp/thumb_user/98013232" scrolling="no" style="border:solid 1px #CCC;" frameborder="0">いぬいぬGames</iframe>
