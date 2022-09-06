@@ -22,6 +22,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Enterwell.Clients.Wpf.Notifications;
+using NLog;
 
 namespace KuchiPaku.ViewModels;
 
@@ -33,6 +34,7 @@ public enum Page{
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public sealed class MainWindowViewModel
 {
+	private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 	public string WindowTitle { get; set; }
 	public INotificationMessageManager Manager { get; set; }
 	public Command? OpenYmmp { get; set; }
@@ -180,7 +182,16 @@ public sealed class MainWindowViewModel
 			var name = SelectedCharaItem?.Name ?? "";
 			//var hasRipSyncSet = RipSyncSettings?.ContainsKey(name) ?? false;
 
-			MakeCustomVoiceFaceItem(maxLayer, customVoices, ymmp);
+			try
+			{
+				MakeCustomVoiceFaceItem(maxLayer, customVoices, ymmp);
+			}
+			catch (System.Exception e)
+			{
+				logger.Error(e);
+				Manager.Dismiss(loading);
+				return;
+			}
 
 			sw.Stop();
 			Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds.ToString()}");
@@ -195,11 +206,14 @@ public sealed class MainWindowViewModel
 			Debug.WriteLine($"TIME[FilterAPIVoiceAync]:{sw.ElapsedMilliseconds.ToString()}");
 
 			//出力
+			var dir = Directory.Exists(CurrentYmmpPath)
+				? Path.GetDirectoryName(CurrentYmmpPath)!
+				: AppDomain.CurrentDomain.BaseDirectory;
 			using var csfd = new CommonSaveFileDialog()
 			{
 				Title = "保存するYMM4プロジェクトファイルを選択",
 				RestoreDirectory = true,
-				DefaultDirectory = Path.GetDirectoryName(CurrentYmmpPath),
+				DefaultDirectory = dir,
 				DefaultFileName =
 					Path.GetFileNameWithoutExtension(CurrentYmmpPath)
 						+ (IsSaveBackup ? ".tmp" : "")
@@ -207,11 +221,23 @@ public sealed class MainWindowViewModel
 			};
 			csfd.Filters
 				.Add(new CommonFileDialogFilter("YMM4プロジェクトファイル", "*.ymmp"));
-			if (csfd.ShowDialog() != CommonFileDialogResult.Ok)
+
+			try
 			{
-				Manager.Dismiss(loading);
+				if (csfd.ShowDialog() != CommonFileDialogResult.Ok)
+				{
+					Manager.Dismiss(loading);
+					return;
+				}
+			}
+			catch (System.Exception e)
+			{
+				//Manager.Warn(e.Message, e.StackTrace ?? "no stack");
+				logger.Info(dir);
+				logger.Error(e);
 				return;
 			}
+
 			sw.Restart();
 			await YmmpUtil.SaveAsync(ymmp, csfd.FileName);
 
@@ -286,7 +312,17 @@ public sealed class MainWindowViewModel
 				var lab = await LabUtil
 					.MakeLabAsync(f, CurrentYmmpFPS);
 				var items = (JArray)ymmp!["Timeline"]!["Items"]!;
-				var tachie = await YmmpUtil.ReadTachieTemplateAsync();
+				var tachie = new JObject();
+				try
+				{
+					tachie = await YmmpUtil.ReadTachieTemplateAsync();
+				}
+				catch (System.Exception e)
+				{
+
+					throw new Exception(e.Message);
+				}
+
 
 				var set = LipSyncSettings!;
 

@@ -109,9 +109,13 @@ public static partial class YmmpUtil
 
 	public static async ValueTask<JObject> ReadTachieTemplateAsync(){
 		var path = Path.Combine(
-			Environment.CurrentDirectory,
-			@"KuchiPaku\Template\template.TachieFaceItem.json"
+			AppDomain.CurrentDomain.BaseDirectory,
+			@"Template\template.TachieFaceItem.json"
 		);
+		if(!File.Exists(path)){
+			throw new FileNotFoundException($"Tachie Template not found. '{path}'");
+		}
+
 		var str = await Task.Run(()=>
 			File.ReadAllText(
 				path,
