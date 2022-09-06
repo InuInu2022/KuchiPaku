@@ -46,12 +46,12 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
   - 読み上げソフト (TTS)
     - [CeVIO Creative Studio](https://cevio.jp/product/ccs/)
     - [CeVIO AI](https://cevio.jp/)
-    - A.I.VOICE
-    - VOICEVOX
+    - [A.I.VOICE](https://aivoice.jp/)
+    - [VOICEVOX](https://voicevox.hiroshiba.jp/)
   - 歌声合成ソフト (Vocal singing synth tools)
     - [CeVIO Creative Studio](https://cevio.jp/product/ccs/)
     - [CeVIO AI](https://cevio.jp/)
-    - NEUTRINO
+    - [NEUTRINO](https://studio-neutrino.com/)
     - [VoiSona](https://voisona.com/)
 - タイミング情報ファイルを生成するツール(.lab file generator tool)
   - こちらのツールを利用することで`.lab`ファイルを生成できます
