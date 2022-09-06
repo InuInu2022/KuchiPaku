@@ -52,6 +52,7 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
     - [CeVIO Creative Studio](https://cevio.jp/product/ccs/)
     - [CeVIO AI](https://cevio.jp/)
     - NEUTRINO
+    - [VoiSona](https://voisona.com/)
 - タイミング情報ファイルを生成するツール(.lab file generator tool)
   - こちらのツールを利用することで`.lab`ファイルを生成できます
   - [Wav2Lab](https://www.nicovideo.jp/watch/sm34735545) by [@Auxilyrica](https://twitter.com/Auxilyrica)
