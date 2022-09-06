@@ -64,4 +64,11 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 
 ## Libraries
 
-- [Epoxy GitHub repository](https://github.com/kekyo/Epoxy)
+- [Epoxy](https://github.com/kekyo/Epoxy)
+- [FluentWPF](https://github.com/sourcechord/FluentWPF)
+- [ModernWpfUI](https://github.com/Kinnara/ModernWpf)
+- [Enterwell Client WPF - Notifications](https://github.com/Enterwell/Wpf.Notifications)
+- [Microsoft-WindowsAPICodePack-Shell](https://github.com/contre/Windows-API-Code-Pack-1.1)
+- [NLog](https://nlog-project.org/)
+- [Json.NET](https://github.com/JamesNK/Newtonsoft.Json)
+- [MinVer](https://github.com/adamralph/minver)
