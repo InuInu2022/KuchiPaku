@@ -26,20 +26,28 @@
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>0.1</MinVerMinimumMajorMinor>
   </PropertyGroup>
-  <Target Name="RemovePublishDirBeforeBuild" BeforeTargets="BeforeBuild">
+  <Target Name="RemovePublishDirBeforeBuild"
+          BeforeTargets="BeforeBuild">
     <RemoveDir Directories="$(OutputPath)/publish/" />
-    <Message Text="RemovePublishDirBeforeBuild" Importance="high" />
+    <Message Text="RemovePublishDirBeforeBuild"
+             Importance="high" />
   </Target>
-  <Target Name="RemoveTranslationsAfterBuild" AfterTargets="AfterBuild">
-    <RemoveDir Directories="@(FluentValidationExcludedCultures->'$(OutputPath)%(Filename)')" />
+  <Target Name="RemoveTranslationsAfterBuild"
+          AfterTargets="AfterBuild">
+    <RemoveDir Directories="@(FluentValidationExcludedCultures-&gt;'$(OutputPath)%(Filename)')" />
   </Target>
-  <Target Name="RemoveTranslationsAfterPublish" AfterTargets="Publish">
-    <RemoveDir Directories="@(FluentValidationExcludedCultures->'$(OutputPath)/publish/%(Filename)')" />
+  <Target Name="RemoveTranslationsAfterPublish"
+          AfterTargets="Publish">
+    <RemoveDir Directories="@(FluentValidationExcludedCultures-&gt;'$(OutputPath)/publish/%(Filename)')" />
   </Target>
-  <Target Name="MakeZipPackage" AfterTargets="Publish">
+  <Target Name="MakeZipPackage"
+          AfterTargets="Publish">
     <MakeDir Directories="$(OutputPath)/_publish/" />
-    <ZipDirectory SourceDirectory="$(OutputPath)/publish/" DestinationFile="$(OutputPath)/_publish/$(AssemblyName)-v.$(Version).zip" Overwrite="true" />
-    <Message Text="Actions After Publish" Importance="high" />
+    <ZipDirectory SourceDirectory="$(OutputPath)/publish/"
+                  DestinationFile="$(OutputPath)/_publish/$(AssemblyName)-v.$(Version).zip"
+                  Overwrite="true" />
+    <Message Text="Actions After Publish"
+             Importance="high" />
   </Target>
   <ItemGroup>
     <FluentValidationExcludedCultures Include="ar;el;he;hi;no;ro;sk;be;cs;cs-CZ;da;de;es;fa;fi;fr;it;ko;mk;nl;pl;pt;ru;sv;tr;uk;zh-CN;zh-CHS;zh-CHT;zh;zh-Hans;zh-Hant;af-ZA;am-ET;ar-SA;az-Latn-AZ;be-BY;bg-BG;bn-BD;bs-Latn-BA;ca-ES;da-DK;de-DE;el-GR;en-GB;es-ES;es-MX;et-EE;eu-ES;fa-IR;fi-FI;fr-CA;fr-FR;gl-ES;ha-Latn-NG;he-IL;hi-IN;hr-HR;hu-HU;id-ID;is-IS;it-IT;ka-GE;kk-KZ;km-KH;kn-IN;ko-KR;lo-LA;lt-LT;lv-LV;mk-MK;ml-IN;ms-MY;nb-NO;nl-NL;nn-NO;pl-PL;pt-BR;pt-PT;ro-RO;ru-RU;sk-SK;sl-SI;sq-AL;sr-Latn-RS;sv-SE;sw-KE;ta-IN;te-IN;th-TH;tr-TR;uk-UA;uz-Latn-UZ;vi-VN;zh-TW;">
@@ -55,15 +63,27 @@
     <Content Include="./Licenses/*/*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
-    <PackageReference Include="Epoxy.Wpf" Version="1.7.0" />
-    <PackageReference Include="ModernWpfUI" Version="0.9.6" />
-    <PackageReference Include="FluentWPF" Version="0.10.2" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <PackageReference Include="MinVer" Version="4.2.0" />
-    <PackageReference Include="Enterwell.Clients.Wpf.Notifications" Version="1.4.2" />
-    <PackageReference Include="NLog" Version="5.0.4" />
-    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
+    <Content Include="../README.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <PackageReference Include="System.Threading.Tasks.Extensions"
+                      Version="4.5.4" />
+    <PackageReference Include="Epoxy.Wpf"
+                      Version="1.7.0" />
+    <PackageReference Include="ModernWpfUI"
+                      Version="0.9.6" />
+    <PackageReference Include="FluentWPF"
+                      Version="0.10.2" />
+    <PackageReference Include="System.Drawing.Common"
+                      Version="6.0.0" />
+    <PackageReference Include="MinVer"
+                      Version="4.2.0" />
+    <PackageReference Include="Enterwell.Clients.Wpf.Notifications"
+                      Version="1.4.2" />
+    <PackageReference Include="NLog"
+                      Version="5.0.4" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell"
+                      Version="1.1.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KuchiPaku.Core\KuchiPaku.Core.csproj" />
