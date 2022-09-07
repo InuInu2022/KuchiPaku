@@ -2,7 +2,7 @@
 
 **KuchiPaku** (クチパク) は[YMM4（ゆっくりムービーメーカー4）](https://manjubox.net/ymm4/)むけの「あいうえお口パク（リップシンク）」を生成するツールです。
 
-The **KuchiPaku** (pronounce: `"coo-chee-park"`, meaning: lip-sync) is a generator tool for the [YMM4 (Yukkuri Movie Maker 4)](https://manjubox.net/ymm4/).
+The **KuchiPaku** (pronounce: `"coo-chee-park"`, meaning: lip-sync) is a lip-sync generator tool for the [YMM4 (Yukkuri Movie Maker 4)](https://manjubox.net/ymm4/).
 
 ## What's KuchiPaku?
 
