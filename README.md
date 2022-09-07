@@ -26,6 +26,12 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
     - [CeVIO AI](https://cevio.jp/) (SAPI5除く)
     - [VOICEVOX](https://voicevox.hiroshiba.jp/)
 
+## Install
+
+- githubの[Releases](https://github.com/InuInu2022/KuchiPaku/releases)から最新のものをダウンロードしてください。
+- **github以外からの配布は行っていません。**
+  - github以外で配布されていた場合、ウイルスやトロイの木馬などの不正なプログラムの可能性があります。絶対にダウンロードしないでください。
+
 ## How to use
 
 1. YMM4でプロジェクトを作ります
