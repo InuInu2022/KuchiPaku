@@ -12,6 +12,8 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 
 主な読み上げソフトのほか、歌声合成ソフトのあいうえお口パクにも利用できます。
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/0ibptgYs0VI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## Supported YMM4 features
 
 **KuchiPaku**はYMM4の以下の機能に対応、または対応予定です。
