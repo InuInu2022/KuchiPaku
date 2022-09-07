@@ -12,7 +12,7 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 
 主な読み上げソフトのほか、歌声合成ソフトのあいうえお口パクにも利用できます。
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/0ibptgYs0VI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![alt設定](http://img.youtube.com/vi/0ibptgYs0VI/0.jpg)](https://www.youtube.com/watch?v=0ibptgYs0VI)
 
 ## Supported YMM4 features
 
