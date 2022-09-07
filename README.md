@@ -29,8 +29,17 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 ## Install
 
 - githubの[Releases](https://github.com/InuInu2022/KuchiPaku/releases)から最新のものをダウンロードしてください。
+  - zipファイルを展開し、お好きな場所に設置してください
 - **github以外からの配布は行っていません。**
   - github以外で配布されていた場合、ウイルスやトロイの木馬などの不正なプログラムの可能性があります。絶対にダウンロードしないでください。
+- アップデートの際はそのまま上書きしてください
+- アンインストールはフォルダ毎削除でOKです
+
+## Requirements
+
+動作環境
+- Windows 10 64bit 18362以降
+- [.NET 6 Runtime](https://dotnet.microsoft.com/ja-jp/download/dotnet/6.0/runtime)
 
 ## How to use
 
