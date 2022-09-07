@@ -1,4 +1,4 @@
-# KuchiPaku - a YMM4 lip-sync support tool
+# KuchiPaku - the YMM4 lip-sync support tool
 
 **KuchiPaku** (クチパク) は[YMM4（ゆっくりムービーメーカー4）](https://manjubox.net/ymm4/)むけの「あいうえお口パク（リップシンク）」を生成するツールです。
 
@@ -13,6 +13,9 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 主な読み上げソフトのほか、歌声合成ソフトのあいうえお口パクにも利用できます。
 
 [![alt設定](http://img.youtube.com/vi/0ibptgYs0VI/0.jpg)](https://www.youtube.com/watch?v=0ibptgYs0VI)
+
+作った経緯はブログ記事でちょっと書いてます。
+[YMMであいうえお口パクした～い！](https://note.com/inuinu_/n/n6e94d0a88edc)
 
 ## Supported YMM4 features
 
@@ -60,7 +63,7 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 **KuchiPaku**は一部の音声合成ソフトがサポートするタイミング情報ファイル(`.lab`)を利用して口パクを生成します。`.lab`ファイルが用意できれば以下に記載がないソフトでも対応している可能性があります。
 
 - 公式に出力サポートしているソフト (officialy supported tools)
-  - 読み上げソフト (TTS)
+  - 読み上げソフト (TTS tools)
     - [CeVIO Creative Studio](https://cevio.jp/product/ccs/)
     - [CeVIO AI](https://cevio.jp/)
     - [A.I.VOICE](https://aivoice.jp/)
@@ -70,7 +73,7 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
     - [CeVIO AI](https://cevio.jp/)
     - [NEUTRINO](https://studio-neutrino.com/)
     - [VoiSona](https://voisona.com/)
-- タイミング情報ファイルを生成するツール(.lab file generator tool)
+- タイミング情報ファイルを生成するツール(`.lab` file generator tool)
   - こちらのツールを利用することで`.lab`ファイルを生成できます
   - [Wav2Lab](https://www.nicovideo.jp/watch/sm34735545) by [@Auxilyrica](https://twitter.com/Auxilyrica)
 
@@ -96,5 +99,4 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
   - YouTube [YouTube](https://bit.ly/InuInuMusic)
   - Twitter [@InuInuGames](https://twitter.com/InuInuGames)
   - Blog [note.com](https://note.com/inuinu_)
-
-<iframe width="320" height="160" src="https://ext.nicovideo.jp/thumb_user/98013232" scrolling="no" style="border:solid 1px #CCC;" frameborder="0">いぬいぬGames</iframe>
+  - niconico [niconico](https://nico.ms/user/98013232)
