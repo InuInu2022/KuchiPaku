@@ -13,6 +13,12 @@ public static class YmmpItemType
         = "YukkuriMovieMaker.Project.Items.TextItem, YukkuriMovieMaker";
 }
 
+public static class YmmpTachieType
+{
+	public const string PsdTachie
+		= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachiePlugin, YukkuriMovieMaker.Plugin.Tachie.Psd, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+}
+
 public static class YmmpVoiceType
 {
 

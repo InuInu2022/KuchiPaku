@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Enterwell.Clients.Wpf.Notifications;
 using NLog;
+using System.Windows.Threading;
 
 namespace KuchiPaku.ViewModels;
 
@@ -106,7 +107,7 @@ public sealed class MainWindowViewModel
 			var viewList = ymmChara
 				.Where(v => v.TachieCharacterParameter is not null)
 				//TODO:support psd tachie
-				.Where(v => v.TachieType != "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachiePlugin, YukkuriMovieMaker.Plugin.Tachie.Psd, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
+				.Where(v => v.TachieType is not YmmpTachieType.PsdTachie)
 				.Select(v => new CharacterListViewModel
 					{
 						Name = v.Name,
@@ -478,13 +479,12 @@ public sealed class MainWindowViewModel
 	}
 
 	[PropertyChanged(nameof(CurrentConsonantOption))]
-	private void CurrentConsonantOptionChangedAsync(ConsonantOption opt){
-		//await Task.Run(() =>
-		//{
-		LipSyncSettings
-			.AsParallel()
-			.ForAll(s => s.Value.ConsonantOption = opt);
-				//.ForEach(s => s.Value.ConsonantOption = opt);
-		//});
+	private async ValueTask CurrentConsonantOptionChangedAsync(ConsonantOption opt){
+		await Application.Current.Dispatcher.InvokeAsync(() =>
+		{
+			LipSyncSettings
+				.AsParallel()
+				.ForAll(s => s.Value.ConsonantOption = opt);
+		});
 	}
 }
