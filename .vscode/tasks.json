@@ -40,7 +40,7 @@
 				"publish",
 				"${workspaceFolder}/KuchiPaku/KuchiPaku.csproj",
 				"/property:GenerateFullPaths=true"
-				//,"/property:Configuration=Release"
+				,"/property:Configuration=Release"
 			],
 			"problemMatcher": "$msCompile"
 		}
