@@ -30,6 +30,7 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
     - [CeVIO Creative Studio](https://cevio.jp/product/ccs/) (SAPI5除く)
     - [CeVIO AI](https://cevio.jp/) (SAPI5除く)
     - [VOICEVOX](https://voicevox.hiroshiba.jp/)
+    - [SHAREVOX](https://www.sharevox.app/)
 
 ## Install
 
