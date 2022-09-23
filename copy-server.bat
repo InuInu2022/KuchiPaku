@@ -1,0 +1,1 @@
+copy ..\FluentCeVIOWrapper\FluentCeVIOWrapper.Server\bin\Release\net48\FluentCeVIOWrapper.Server.exe KuchiPaku\Server

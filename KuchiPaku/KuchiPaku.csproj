@@ -60,6 +60,9 @@
     <Content Include="../README.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="./Server/FluentCeVIOWrapper.Server.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <PackageReference Include="FluentCeVIOWrapper" Version="0.1.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="Epoxy.Wpf" Version="1.7.0" />
