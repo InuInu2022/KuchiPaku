@@ -327,7 +327,7 @@ public sealed class MainWindowViewModel
 
 				var set = LipSyncSettings!;
 
-				var contentOffset = CulcContentOffset(v.ContentOffset.TotalMilliseconds, CurrentYmmpFPS);
+				var contentOffset = YmmpUtil.CulcContentOffset(v.ContentOffset.TotalMilliseconds, CurrentYmmpFPS);
 
 				await YmmpUtil.MakeRipSyncItemAsync(
 					lab,
@@ -343,10 +343,6 @@ public sealed class MainWindowViewModel
 
 		sw.Stop();
 		Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds.ToString()}");
-	}
-
-	private static int CulcContentOffset(double totalSeconds, int fps){
-		return (totalSeconds == 0.0) ? 0 : (int) Math.Round(totalSeconds / 1000 * fps);
 	}
 
 	[PropertyChanged(nameof(SelectedCharaItem))]

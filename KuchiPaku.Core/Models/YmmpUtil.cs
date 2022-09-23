@@ -296,4 +296,8 @@ public static partial class YmmpUtil
 			=> JsonConvert.DeserializeObject<JObject>(s));
 		return newItem!;
 	}
+
+	public static int CulcContentOffset(double totalSeconds, int fps){
+		return (totalSeconds == 0.0) ? 0 : (int) Math.Round(totalSeconds / 1000 * fps);
+	}
 }
