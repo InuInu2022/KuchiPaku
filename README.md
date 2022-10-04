@@ -97,6 +97,9 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 - [Json.NET](https://github.com/JamesNK/Newtonsoft.Json)
 - [MinVer](https://github.com/adamralph/minver)
 - Fluent CeVIO Wrapper
+  - [H.Pipes](https://github.com/HavenDV/H.Pipes)
+  - [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework)
+  - [System.Reactive](https://github.com/dotnet/reactive)
 
 ## KuchiPaku license
 
