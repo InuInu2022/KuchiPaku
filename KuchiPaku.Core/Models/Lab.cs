@@ -1,16 +1,21 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace KuchiPaku.Models;
 
 public class Lab
 {
-	public IEnumerable<LabLine>? Lines { get; }
+	public IEnumerable<LabLine>? Lines
+	{
+		get => lines;
+	}
+	private IEnumerable<LabLine>? lines;
 
 	public Lab(string labData, int fps = 30)
 	{
-		Lines = labData
+		lines = labData
 			.Split(new string[]{Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries)
 			.Where(s => !string.IsNullOrEmpty(s))    //空行無視
 			.Select((v, i) =>
@@ -23,6 +28,10 @@ public class Lab
 					fps
 				);
 			});
+	}
+
+	public Lab(IEnumerable<LabLine> labLines){
+		lines = labLines;
 	}
 
 	/// <summary>
@@ -71,7 +80,39 @@ public class Lab
 		}
 
 		return result;
+	}
 
+	public async ValueTask ChangeLengthByRateAsync(double percent){
+		if(Lines is null)
+		{
+			return;
+		}
+
+		var rate = 100 / percent;
+		var origin = 0.0;
+
+		//await Task.Run(() =>
+		//{
+		var newLines = lines.ToList();
+		for (int i = 0; i < Lines.Count(); i++)
+		{
+			var line = Lines.ElementAt(i);
+			if(i is 0){
+				origin = line.From;
+			}
+
+			var newFrom = ((line.From - origin) * rate) + origin;
+			var len = (line.To - line.From) * rate;
+			var newTo = newFrom + len;
+			newLines[i] = new LabLine(
+				newFrom,
+				newTo,
+				line.Phoneme,
+				LabLine.MovieFPS);
+		}
+
+		lines = newLines;
+		//});
 	}
 }
 
@@ -103,8 +144,10 @@ public class LabLine
 
 	public int FrameLen => FrameTo - FrameFrom;
 
-	private int ToFrame(double Time)
+	private static int ToFrame(double Time)
 	{
-		return (int)(Time / 10000000 * MovieFPS);
+		var t = (decimal)Time;
+		const decimal divnum = 10000000m;
+		return (int)(decimal.Divide(t, divnum) * MovieFPS);
 	}
 }

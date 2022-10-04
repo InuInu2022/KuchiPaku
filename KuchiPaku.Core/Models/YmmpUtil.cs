@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using KuchiPaku.Core.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -102,7 +103,9 @@ public static partial class YmmpUtil
 				.AsParallel()
 				.Where(v => v is not null)
 				.OfType<YmmVoiceItem>()
-				.Where(v => !v.IsCustomVoice && v.VoiceParameter is not null)
+				.Where(v => !v.IsCustomVoice
+					&& v.VoiceParameter is not null
+					&& v.TachieFaceParameter?.Type != "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter, YukkuriMovieMaker.Plugin.Tachie.Psd")
 
 		);
 	}
@@ -198,9 +201,13 @@ public static partial class YmmpUtil
 		for (var i = 0; i < len; i++)
 		{
 			var line = lab.Lines.ElementAt(i);
+			Debug.WriteLine($"Frame[{line.Phoneme}] {line.FrameLen} [{line.FrameFrom}-{line.FrameTo}]({line.From} - {line.To})");
 
 			if (line.Phoneme == "pau") continue;
-			if (line.FrameLen <= 0) continue;
+			if (line.FrameLen <= 0)
+			{
+				continue;
+			}
 
 			var imageFileName = "";
 
@@ -299,5 +306,146 @@ public static partial class YmmpUtil
 
 	public static int CulcContentOffset(double totalSeconds, int fps){
 		return (totalSeconds == 0.0) ? 0 : (int) Math.Round(totalSeconds / 1000 * fps);
+	}
+
+	public static async ValueTask MakeAPIVoiceFaceItemAsync(
+		int maxLayer,
+		IEnumerable<YmmVoiceItem> voiceItems,
+		JObject ymmp,
+		Dictionary<string, LipSyncOption> lipSyncSettings,
+		int currentYmmpFPS
+	)
+	{
+		var ymmChara = await YmmpUtil.ParseCharactersAsync(ymmp);
+
+		var convItems = voiceItems
+			.AsParallel()
+			.Where(v => v is not null
+				&& !string.IsNullOrEmpty(v.Serif)
+				&& v.VoiceParameter is not null)
+			.Select(v => (
+				item: v,
+				voice: ymmChara
+					.First(c => c.Name == v.CharacterName)
+					.Voice))
+			.Where(v =>
+				TTSTabel.YmmVoiceToProduct[v.voice.Api] is
+					TTSProduct.CeVIO_AI or
+					TTSProduct.CeVIO_CS)	//TODO:support voicevox,sharevox
+			.ToList();
+		var moddedItems = new List<(YmmVoiceItem item, Voice voice)>();
+		try
+		{
+			await Task.WhenAll(
+				convItems
+					.Select(v => TTSUtil
+						.AwakeTTSAsync(
+							TTSTabel
+								.YmmVoiceToProduct[v.voice.Api],
+							true
+						)
+						.AsTask()
+					)
+					.ToArray()
+			);
+			await CheckTTSAwakedAsync(convItems);
+
+			foreach (var (item, voice) in convItems)
+			{
+				item.LabLines = await TTSUtil.GetPhonemesAsync(
+					voice,
+					item.VoiceParameter!,
+					TTSTabel.YmmVoiceToProduct[voice.Api],
+					item.Serif ?? "",
+					currentYmmpFPS,
+					item.PlaybackRate
+				);
+			}
+
+			moddedItems = convItems;
+		}
+		catch (Exception e){
+			Debug.WriteLine($"ERROR:{e.Message}");
+			await TTSUtil.StopTTSAsync(TTSProduct.CeVIO_AI);
+			await TTSUtil.StopTTSAsync(TTSProduct.CeVIO_CS);
+			throw new Exception("get phoneme error",e);
+		}
+
+		Debug.WriteLine($"API voice num:{moddedItems.Count}");
+
+		//await Task.Run(() => {
+		//convItems
+		moddedItems
+			.ForEach(async v =>
+			{
+				var items = (JArray)ymmp!["Timeline"]!["Items"]!;
+				var tachie = new JObject();
+				try
+				{
+					tachie = await YmmpUtil.ReadTachieTemplateAsync();
+				}
+				catch (System.Exception e)
+				{
+					throw new Exception(e.Message);
+				}
+
+				var set = lipSyncSettings!;
+				var contentOffset = YmmpUtil
+					.CulcContentOffset(
+						v.item.ContentOffset.TotalMilliseconds,
+						currentYmmpFPS
+					);
+				try
+				{
+					var lab = new Lab(v.item.LabLines!);
+					if (v.item.PlaybackRate is not 100.0)
+					{
+						await lab.ChangeLengthByRateAsync(v.item.PlaybackRate);
+					}
+
+					await YmmpUtil.MakeRipSyncItemAsync(
+						lab,
+						items,
+						tachie,
+						set[v!.item.CharacterName!]!,
+						maxLayer + 1,
+						v.item.Frame - contentOffset
+					);
+				}
+				catch (System.Exception e)
+				{
+					Debug.WriteLine($"e:{e.Message}");
+				}
+
+				maxLayer++;
+			})
+			;
+
+		//});
+
+		//end tts server
+		await TTSUtil.StopTTSAsync(TTSProduct.CeVIO_AI);
+		await TTSUtil.StopTTSAsync(TTSProduct.CeVIO_CS);
+	}
+
+	private static async ValueTask CheckTTSAwakedAsync(List<(YmmVoiceItem item, Voice voice)> convItems)
+	{
+		await Task.Delay(2000);
+		Debug.WriteLine("TTS awake waiting...");
+		var results = await Task.WhenAll(
+			convItems
+				.Select(v => TTSUtil
+					.IsTTSAwakedAsync(
+						TTSTabel.YmmVoiceToProduct[v.voice.Api]
+					)
+					.AsTask()
+				)
+				.ToArray()
+		);
+		var isAllAwaked = results.All(v => v);
+		if (!isAllAwaked)
+		{
+			await CheckTTSAwakedAsync(convItems);
+		}
 	}
 }

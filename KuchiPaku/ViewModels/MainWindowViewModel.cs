@@ -185,7 +185,13 @@ public sealed class MainWindowViewModel
 
 			try
 			{
-				MakeCustomVoiceFaceItem(maxLayer, customVoices, ymmp);
+				MakeCustomVoiceFaceItem(
+					maxLayer,
+					customVoices,
+					ymmp,
+					LipSyncSettings,
+					CurrentYmmpFPS
+				);
 			}
 			catch (System.Exception e)
 			{
@@ -199,9 +205,29 @@ public sealed class MainWindowViewModel
 			sw.Restart();
 
 			//APIボイス
+			maxLayer = YmmpUtil.GetMaxLayer(ymmp);
 			var apiVoices = await YmmpUtil.FilterAPIVoiceAsync(voiceItems);
 
-			//TODO:APIボイスの口パク生成
+			//APIボイスの口パク生成
+			Debug.WriteLine(nameof(YmmpUtil.MakeAPIVoiceFaceItemAsync));
+			//apiVoices.Select(v => v.)
+			//await Core.Models.TTSUtil.AwakeTTSAsync(Core.Models.TTSProduct.CeVIO_AI);
+			try
+			{
+				await YmmpUtil.MakeAPIVoiceFaceItemAsync(
+					maxLayer,
+					apiVoices,
+					ymmp,
+					LipSyncSettings,
+					CurrentYmmpFPS);
+			}
+			catch (System.Exception e)
+			{
+				Debug.WriteLine($"ERROR:{e.Message}");
+				logger.Error(e);
+				Manager.Dismiss(loading);
+				return;
+			}
 
 			sw.Stop();
 			Debug.WriteLine($"TIME[FilterAPIVoiceAync]:{sw.ElapsedMilliseconds.ToString()}");
@@ -271,6 +297,8 @@ public sealed class MainWindowViewModel
 			=> await OpenAsync("https://manjubox.net/ymm4/"));
 	}
 
+
+
 	private static async ValueTask OpenAsync(string path){
 		await Task.Run(() =>
 		{
@@ -283,10 +311,12 @@ public sealed class MainWindowViewModel
 		});
 	}
 
-	private void MakeCustomVoiceFaceItem(
+	public void MakeCustomVoiceFaceItem(
 		int maxLayer,
 		IEnumerable<YmmVoiceItem> customVoices,
-		JObject ymmp
+		JObject ymmp,
+		Dictionary<string, LipSyncOption> lipSyncSettings,
+		int currentYmmpFPS
 	)
 	{
 		var sw = new System.Diagnostics.Stopwatch();
@@ -299,7 +329,7 @@ public sealed class MainWindowViewModel
 			{
 				var labPath = Path.ChangeExtension(v!.Hatsuon, "lab");
 
-				Debug.WriteLine($"lab: {labPath}:{File.Exists(labPath).ToString()}");
+				Debug.WriteLine($"lab: {labPath}:{File.Exists(labPath)}");
 
 				v.HasLabFile = File.Exists(labPath);
 
@@ -311,7 +341,7 @@ public sealed class MainWindowViewModel
 			{
 				var f = new FileInfo(Path.ChangeExtension(v!.Hatsuon, "lab")!);
 				var lab = await LabUtil
-					.MakeLabAsync(f, CurrentYmmpFPS);
+					.MakeLabAsync(f, currentYmmpFPS);
 				var items = (JArray)ymmp!["Timeline"]!["Items"]!;
 				var tachie = new JObject();
 				try
@@ -320,14 +350,16 @@ public sealed class MainWindowViewModel
 				}
 				catch (System.Exception e)
 				{
-
 					throw new Exception(e.Message);
 				}
 
+				var set = lipSyncSettings!;
 
-				var set = LipSyncSettings!;
-
-				var contentOffset = YmmpUtil.CulcContentOffset(v.ContentOffset.TotalMilliseconds, CurrentYmmpFPS);
+				var contentOffset = YmmpUtil
+					.CulcContentOffset(
+						v.ContentOffset.TotalMilliseconds,
+						currentYmmpFPS
+					);
 
 				await YmmpUtil.MakeRipSyncItemAsync(
 					lab,
@@ -342,7 +374,7 @@ public sealed class MainWindowViewModel
 			//*/
 
 		sw.Stop();
-		Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds.ToString()}");
+		Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds}");
 	}
 
 	[PropertyChanged(nameof(SelectedCharaItem))]

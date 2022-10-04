@@ -54,10 +54,13 @@ public class LipSyncImageViewModel
 		if(MainWindowVM?.LipSyncSettings is null)return;
 		if(!MainWindowVM.LipSyncSettings.ContainsKey(CharacterName))return;
 
+		var p = selected.Path;
+
 		MainWindowVM
 			.LipSyncSettings[CharacterName]
 			.MousePhenomeImagePair[Id]
-			= Path.GetFileName(selected.Path)!;
+			= await Task.Run(()=>Path.GetFileName(p)!);
+
 
 		Debug.WriteLine($"RipSyncSettings[{CharacterName}]:[{Id}]:{Path.GetFileName(selected.Path)!}");
 	}

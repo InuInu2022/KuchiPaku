@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace KuchiPaku.Models;
 
@@ -19,7 +20,14 @@ public static class YmmpTachieType
 		= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachiePlugin, YukkuriMovieMaker.Plugin.Tachie.Psd, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 }
 
-public static class YmmpVoiceType
+public static class YmmpVoiceParameterType
 {
+	public const string CeVIOAIKarin = "YukkuriMovieMaker.Voice.CeVIOAIVoiceParameterKarin, YukkuriMovieMaker";
 
+	public static readonly Regex RegCeVIO = new(
+		@"YukkuriMovieMaker\.Voice\." +
+			@"CeVIO(AI)?VoiceParameter.+,\sYukkuriMovieMaker"
+	);
+
+	public const string VOICEVOX = "YukkuriMovieMaker.Voice.VOICEVOXVoiceParameter, YukkuriMovieMaker";
 }

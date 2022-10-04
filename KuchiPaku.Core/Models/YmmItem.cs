@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -43,13 +44,21 @@ public class YmmVoiceItem : YmmItem
     [JsonProperty("ContentOffset")]
     public TimeSpan ContentOffset { get; set; }
 
-    [JsonProperty("VoiceParameter")]
+    [JsonProperty("PlaybackRate")]
+    public double PlaybackRate { get; set; }
+
+	[JsonProperty("VoiceParameter")]
     public VoiceParameter? VoiceParameter { get; set; }
 
-    #region internal added
+    [JsonProperty("TachieFaceParameter")]
+    public TachieFaceParameter? TachieFaceParameter { get; set; }
 
-    public bool IsCustomVoice { get; set; }
+	#region internal added
+
+	public bool IsCustomVoice { get; set; }
     public bool HasLabFile { get; set; }
+
+    public IList<LabLine>? LabLines { get; set; }
 	#endregion
 }
 
@@ -68,7 +77,6 @@ public partial class YmmItemUtil
 				Converter.Settings
 			);
 }
-
 
 public partial class VoiceParameter
 {
@@ -104,12 +112,16 @@ public partial class VoiceParameter
 
     [JsonProperty("Pitch")]
     public long? Pitch { get; set; }
+
     [JsonProperty("PitchRange")]
     public long? PitchRange { get; set; }
+
     [JsonProperty("MiddlePause")]
     public int? MiddlePause { get; set; }
+
     [JsonProperty("LongPause")]
     public int? LongPause { get; set; }
+
     [JsonProperty("SentensePause")]
     public int? SentensePause { get; set; }
 
@@ -117,3 +129,7 @@ public partial class VoiceParameter
     public string? Preset { get; set; }
 }
 
+public partial class TachieFaceParameter{
+    [JsonProperty("$type")]
+    public string? Type { get; set; }
+}
