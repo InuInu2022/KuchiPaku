@@ -48,6 +48,18 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 - [.NET 6 Runtime](https://dotnet.microsoft.com/ja-jp/download/dotnet/6.0/runtime)
 - .NET Framework 4.8 (CeVIOのAPI利用ボイスの場合）
 
+CeVIOを普通とは違う所にインストールしてる場合は、下の例みたいに`appsettings.json`を書き換えてください。
+
+例：CeVIO AIを「`F:\Path\To\CeVIO\AI\`」にインストールした場合
+```diff
+		{
+			"type":"CeVIO AI",
+			"engine":"CeVIO",
+- 			"DllPath":"C:\\Program Files\\CeVIO\\CeVIO AI\\"
++ 			"DllPath":"F:\\Path\\To\\CeVIO\\AI\\"
+		},
+```
+
 ## How to use
 
 1. YMM4でプロジェクトを作ります
