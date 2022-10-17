@@ -46,6 +46,7 @@ YMM4がサポートしていない「あいうえお口パク」を作成する�
 動作環境
 - Windows 10 64bit 18362以降
 - [.NET 6 Runtime](https://dotnet.microsoft.com/ja-jp/download/dotnet/6.0/runtime)
+- .NET Framework 4.8 (CeVIOのAPI利用ボイスの場合）
 
 ## How to use
 
