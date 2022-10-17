@@ -21,7 +21,9 @@ public static class TTSUtil
 	private static readonly ConcurrentDictionary<TTSProduct, ITTSManager> TTSmanagers = new();
 
 	public static async ValueTask AwakeTTSAsync(
-		TTSProduct tts, bool isWait = false){
+		TTSProduct tts,
+		bool isWait = false
+	){
 		if(isWait){
 			await CheckTTSInitAsync(tts);
 		}else{
@@ -62,30 +64,29 @@ public static class TTSUtil
 		return await manager.GetPhonemeAsync(voice, voiceParam, text, fps, playBackRate);
 	}
 
-	private static async ValueTask<ITTSManager> CheckTTSInitAsync(TTSProduct tts)
+	private static async ValueTask<ITTSManager> CheckTTSInitAsync(
+		TTSProduct tts
+	)
 	{
 		//TODO: check awaked tts engine
 
 		var targetTTS = await Task.Run(() =>
 		{
+			var path = ConfigUtil
+				.Settings
+				.TalkSoftInterfaces
+				.First(v => TTSTabel.YmmVoiceToProduct[v.Type!] == tts)
+				.DllPath;
+			path = string.IsNullOrEmpty(path) ? "" : path;
 			return TTSmanagers.GetOrAdd(
 				tts,
 				new TTSManager(
 					tts,
 					TTSTabel.TTStoType.ContainsKey(tts)
 						? TTSTabel.TTStoType[tts]
-						: APIType.TypeOther
+						: APIType.TypeOther,
+					path
 					));
-			/*
-			if(TTSmanagers.ContainsKey(tts)){
-				return TTSmanagers.FirstOrDefault(v => v.TTS == tts);
-			}else{
-				var api = TTSTabel.TTStoType.ContainsKey(tts) ? TTSTabel.TTStoType[tts] : APIType.TypeOther;
-				var ttsmanager = new TTSManager(tts, api);
-				TTSmanagers.Add(ttsmanager);
-				return ttsmanager;
-			}
-			*/
 		});
 
         if(!targetTTS.IsAwaked
@@ -113,14 +114,17 @@ class TTSManager : ITTSManager, IDisposable
 	private bool isAwaked = false;
 	private bool isAwaking = false;
 	private bool disposedValue;
+	private readonly string? dllPath;
 
 	public TTSManager(
 		TTSProduct tts,
-		APIType type
+		APIType type,
+		string? dllPath = ""
     )
 	{
 		TTS = tts;
 		Type = type;
+		this.dllPath = dllPath;
 	}
 
 	public async ValueTask AwakeAsync()
@@ -131,14 +135,18 @@ class TTSManager : ITTSManager, IDisposable
 			{
 				//awake server
 				isAwaking = true;
-				if(process is null || process.HasExited){
+					var dll = !string.IsNullOrEmpty(dllPath)
+						? $" -dllPath {dllPath}"
+						: "";
+
+					if(process is null || process.HasExited){
 					var ps = new ProcessStartInfo()
 					{
 						FileName = Path.Combine(
 							AppDomain.CurrentDomain.BaseDirectory,
 							@"Server\FluentCeVIOWrapper.Server.exe"
 						),
-						Arguments = $"-cevio {TTS} -pipeName KuchiPaku_{TTS}",
+						Arguments = $"-cevio {TTS} -pipeName KuchiPaku_{TTS} {dll}",
 						ErrorDialog = true,
 						//RedirectStandardOutput = true,
 						CreateNoWindow = !AppUtil.IsDebug,	//show console if debug

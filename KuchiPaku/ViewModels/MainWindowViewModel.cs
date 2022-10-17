@@ -79,6 +79,12 @@ public sealed class MainWindowViewModel
 		LipSyncImages = new ObservableCollection<LipSyncImageViewModel>();
 		LipSyncSettings = new();
 
+		KuchiPaku.Core.Models.ConfigUtil.LoadConfig();
+		var settings = KuchiPaku.Core.Models.ConfigUtil.Settings;
+		foreach(var i in settings!.TalkSoftInterfaces!){
+			Debug.WriteLine($"{i.Type}:{i.DllPath}");
+		}
+
 		OpenYmmp = Command.Factory.Create<RoutedEventArgs>(async _ =>
 		{
 			using var cofd = new CommonOpenFileDialog()
