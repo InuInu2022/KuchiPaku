@@ -76,6 +76,9 @@ public static partial class YmmpUtil
 		Regex regPat = new(
 			@"^[A-Z].+\.[0-9a-zA-Z]{3,}$",
 			RegexOptions.Compiled);
+		Regex regFilePat = new(
+			@"^[A-Z]\:\\\\.*$",
+			RegexOptions.Compiled);
 
 		return await Task.Run(() => {
 			return voices
@@ -85,7 +88,7 @@ public static partial class YmmpUtil
 				.Where(v =>
 					v is not null
 						&& !string.IsNullOrEmpty(v.Hatsuon)
-						&& regPat.IsMatch(v.Hatsuon)
+						&& (regPat.IsMatch(v.Hatsuon) || regFilePat.IsMatch(v.Hatsuon))
 						&& File.Exists(v.Hatsuon)
 				)
 				.Select(v =>
@@ -328,6 +331,7 @@ public static partial class YmmpUtil
 				voice: ymmChara
 					.First(c => c.Name == v.CharacterName)
 					.Voice))
+			.Where(v => v.voice.Api != "commandline")
 			.Where(v =>
 				TTSTabel.YmmVoiceToProduct[v.voice.Api] is
 					TTSProduct.CeVIO_AI or
