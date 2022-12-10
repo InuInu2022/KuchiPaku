@@ -139,7 +139,7 @@ class TTSManager : ITTSManager, IDisposable
 						? $" -dllPath {dllPath}"
 						: "";
 
-					if(process is null || process.HasExited){
+				if(process is null || process.HasExited){
 					var ps = new ProcessStartInfo()
 					{
 						FileName = Path.Combine(
