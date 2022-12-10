@@ -348,6 +348,8 @@ public sealed class MainWindowViewModel
 				var f = new FileInfo(Path.ChangeExtension(v!.Hatsuon, "lab")!);
 				var lab = await LabUtil
 					.MakeLabAsync(f, currentYmmpFPS);
+
+				await lab.ChangeLengthByRateAsync(v.PlaybackRate);
 				var items = (JArray)ymmp!["Timeline"]!["Items"]!;
 				var tachie = new JObject();
 				try
