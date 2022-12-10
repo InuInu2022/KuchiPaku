@@ -110,7 +110,7 @@ CeVIOを普通とは違う所にインストールしてる場合は、下の例
 - [Json.NET](https://github.com/JamesNK/Newtonsoft.Json)
 - [MinVer](https://github.com/adamralph/minver)
 - [Microsoft.Extensions.Hosting](https://www.nuget.org/packages/Microsoft.Extensions.Hosting)
-- Fluent CeVIO Wrapper
+- [Fluent CeVIO Wrapper](https://github.com/InuInu2022/FluentCeVIOWrapper)
   - [H.Pipes](https://github.com/HavenDV/H.Pipes)
   - [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework)
   - [System.Reactive](https://github.com/dotnet/reactive)
