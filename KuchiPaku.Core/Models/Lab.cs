@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -16,10 +17,11 @@ public class Lab
 	public Lab(string labData, int fps = 30)
 	{
 		lines = labData
-			.Split(new string[]{Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries)
+			.Split(new string[]{"\r\n","\n","\r"}, StringSplitOptions.RemoveEmptyEntries)
 			.Where(s => !string.IsNullOrEmpty(s))    //空行無視
 			.Select((v, i) =>
 			{
+				Debug.WriteLine($"line: {v}");
 				var a = v.Split(new string[]{" "},StringSplitOptions.RemoveEmptyEntries);
 				return new LabLine(
 					Convert.ToDouble(a[0]),
