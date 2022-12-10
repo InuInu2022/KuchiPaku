@@ -26,6 +26,13 @@
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>0.1</MinVerMinimumMajorMinor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+      <Deterministic>true</Deterministic>
+      <DeterministicSourceRoot>/_/</DeterministicSourceRoot>
+      <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
+      <PathMap>$(RepoRoot)=$(DeterministicSourceRoot)</PathMap>
+      <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
   <Target Name="RemovePublishDirBeforeBuild" BeforeTargets="BeforeBuild">
     <RemoveDir Directories="$(OutputPath)/publish/" />
     <Message Text="RemovePublishDirBeforeBuild" Importance="high" />
