@@ -90,9 +90,12 @@ CeVIOを普通とは違う所にインストールしてる場合は、下の例
     - [CeVIO AI](https://cevio.jp/)
     - [NEUTRINO](https://studio-neutrino.com/)
     - [VoiSona](https://voisona.com/)
+    - [NNSVS](https://nnsvs.github.io/)
 - タイミング情報ファイルを生成するツール(`.lab` file generator tool)
   - こちらのツールを利用することで`.lab`ファイルを生成できます
   - [Wav2Lab](https://www.nicovideo.jp/watch/sm34735545) by [@Auxilyrica](https://twitter.com/Auxilyrica)
+  - [UtauMakeLab plugin](https://twitter.com/delta_kuro/status/1239486860176453632) for UTAU by [delta-kimigatame](https://github.com/delta-kimigatame/)
+    - [github repo](https://github.com/delta-kimigatame/UtauMakeLabPlugin)
 
 ## Projects
 
