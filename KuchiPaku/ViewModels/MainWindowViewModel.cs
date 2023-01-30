@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Enterwell.Clients.Wpf.Notifications;
 using NLog;
-using System.Windows.Threading;
 
 namespace KuchiPaku.ViewModels;
 
@@ -319,8 +318,6 @@ public sealed class MainWindowViewModel
 		OpenYMM4Website = CommandFactory.Create<RoutedEventArgs>(async _
 			=> await OpenAsync("https://manjubox.net/ymm4/"));
 	}
-
-
 
 	private static async ValueTask OpenAsync(string path){
 		await Task.Run(() =>
