@@ -182,7 +182,9 @@
               </ui:SimpleStackPanel>
             </GroupBox>
             <!-- 口パク画像設定 -->
-            <GroupBox>
+            <GroupBox
+              IsEnabled="{Binding SelectedItem.IsExport, ElementName=Character}"
+              >
               <GroupBox.Header>
                 <ui:SimpleStackPanel Orientation="Horizontal">
                   <ui:SymbolIcon Symbol="Setting"
