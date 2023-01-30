@@ -29,7 +29,8 @@ public class Lab
 					a[2],
 					fps
 				);
-			});
+			})
+			.ToList();
 	}
 
 	public Lab(IEnumerable<LabLine> labLines){
