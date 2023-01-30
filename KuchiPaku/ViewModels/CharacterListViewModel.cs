@@ -10,4 +10,6 @@ public class CharacterListViewModel
 	public string? DirectoryPath { get; set; }
 
 	public string? DefaultMouthImgPath { get; set; }
+
+	public bool IsExport { get; set; } = true;
 }

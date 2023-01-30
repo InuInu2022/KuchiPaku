@@ -152,8 +152,11 @@
                     <ListView.ItemTemplate>
                       <DataTemplate>
                         <StackPanel Orientation="Horizontal">
+                          <ToggleButton IsChecked="{Binding IsExport}" />
                           <TextBlock
                             Margin="5"
+                            VerticalAlignment="Center"
+                            IsEnabled="{Binding IsExport}"
                             Text="{Binding Name}"/>
                         </StackPanel>
                       </DataTemplate>

@@ -19,5 +19,5 @@ namespace KuchiPaku.ViewModels
         public ImageSource? Image { get; set; }
 
         public int Score { get; set; }
-    }
+	}
 }

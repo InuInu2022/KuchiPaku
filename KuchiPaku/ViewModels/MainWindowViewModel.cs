@@ -155,6 +155,7 @@ public sealed class MainWindowViewModel
 				);
 				return;
 			}
+
 			var sw = new System.Diagnostics.Stopwatch();
 			sw.Start();
 
@@ -165,7 +166,7 @@ public sealed class MainWindowViewModel
 			var voiceItems = await YmmpUtil.ParseVoiceItemsAsync(ymmp);
 
 			sw.Stop();
-			Debug.WriteLine($"TIME[ParseVoiceItemsAsync]:{sw.ElapsedMilliseconds.ToString()}");
+			Debug.WriteLine($"TIME[ParseVoiceItemsAsync]:{sw.ElapsedMilliseconds}");
 			sw.Restart();
 
 			if (voiceItems is null)
@@ -175,15 +176,26 @@ public sealed class MainWindowViewModel
 				return;
 			}
 
+			//filter exportable
+			var exportVoiceItems = voiceItems
+				.Where(v => {
+					if( Characters.Any(c => c.Name == v.CharacterName) ){
+						return Characters.First(c => c.Name == v.CharacterName).IsExport;
+					}else{
+						return false;
+					}
+				})
+				.ToList();
+
 			var maxLayer = YmmpUtil.GetMaxLayer(ymmp);
-			Debug.WriteLine($"MaxLayer: {maxLayer.ToString()}");
+			Debug.WriteLine($"MaxLayer: {maxLayer}");
 
 			//カスタムボイス
 			//カスタムボイスは同じ場所の.labファイルを探して口パク生成
-			var customVoices = await YmmpUtil.FilterCustomVoiceAsync(voiceItems);
+			var customVoices = await YmmpUtil.FilterCustomVoiceAsync(exportVoiceItems);
 
 			sw.Stop();
-			Debug.WriteLine($"TIME[FilterCustomVoiceAsync]:{sw.ElapsedMilliseconds.ToString()}");
+			Debug.WriteLine($"TIME[FilterCustomVoiceAsync]:{sw.ElapsedMilliseconds}");
 			sw.Restart();
 
 			var name = SelectedCharaItem?.Name ?? "";
@@ -207,12 +219,12 @@ public sealed class MainWindowViewModel
 			}
 
 			sw.Stop();
-			Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds.ToString()}");
+			Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds}");
 			sw.Restart();
 
 			//APIボイス
 			maxLayer = YmmpUtil.GetMaxLayer(ymmp);
-			var apiVoices = await YmmpUtil.FilterAPIVoiceAsync(voiceItems);
+			var apiVoices = await YmmpUtil.FilterAPIVoiceAsync(exportVoiceItems);
 
 			//APIボイスの口パク生成
 			Debug.WriteLine(nameof(YmmpUtil.MakeAPIVoiceFaceItemAsync));
@@ -236,7 +248,7 @@ public sealed class MainWindowViewModel
 			}
 
 			sw.Stop();
-			Debug.WriteLine($"TIME[FilterAPIVoiceAync]:{sw.ElapsedMilliseconds.ToString()}");
+			Debug.WriteLine($"TIME[FilterAPIVoiceAync]:{sw.ElapsedMilliseconds}");
 
 			//出力
 			var dir = Directory.Exists(CurrentYmmpPath)
@@ -393,7 +405,7 @@ public sealed class MainWindowViewModel
 		sw.Start();
 
 		var chara = item;
-		Debug.WriteLine($"SelectedChara: {chara.Name}");
+		Debug.WriteLine($"SelectedChara: {chara.Name}, isExport: {chara.IsExport}");
 
 		//TODO:設定リストから読み出す
 		//クチパク設定Viewに設定
