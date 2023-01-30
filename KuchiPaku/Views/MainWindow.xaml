@@ -37,6 +37,7 @@
       <Setter Property="Padding" Value="10,5" />
     </Style>
     -->
+    <BooleanToVisibilityConverter x:Key="BoolToVisible"/>
   </Window.Resources>
 
   <!--
@@ -152,7 +153,21 @@
                     <ListView.ItemTemplate>
                       <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                          <ToggleButton IsChecked="{Binding IsExport}" />
+                          <ToggleButton
+                            ToolTip="ボタンを押したキャラは出力されなくなります。"
+                            Width="20"
+                            Height="20"
+                            Margin="0"
+                            Padding="0"
+                            IsChecked="{Binding IsExport}">
+                            <TextBlock
+                              Text="✔"
+                              Margin="0"
+                              Padding="0"
+                              FontSize="8"
+                              Visibility="{Binding IsExport, Converter={StaticResource BoolToVisible}}"
+                              />
+                          </ToggleButton>
                           <TextBlock
                             Margin="5"
                             VerticalAlignment="Center"
