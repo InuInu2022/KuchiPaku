@@ -161,6 +161,8 @@ public sealed class MainWindowViewModel
 
 			var loading = Manager.Loading("保存中", "保存しています…");
 
+			loading.Message = "ボイスアイテムを解析中…";
+
 			var ymmp = await YmmpUtil.CopyDeepAsync(CurrentYmmp);
 
 			var voiceItems = await YmmpUtil.ParseVoiceItemsAsync(ymmp);
@@ -177,7 +179,8 @@ public sealed class MainWindowViewModel
 			}
 
 			//filter exportable
-			var exportVoiceItems = voiceItems
+			loading.Message = "出力対象のフィルタ…";
+			voiceItems = voiceItems
 				.Where(v => {
 					if( Characters.Any(c => c.Name == v.CharacterName) ){
 						return Characters.First(c => c.Name == v.CharacterName).IsExport;
@@ -192,7 +195,8 @@ public sealed class MainWindowViewModel
 
 			//カスタムボイス
 			//カスタムボイスは同じ場所の.labファイルを探して口パク生成
-			var customVoices = await YmmpUtil.FilterCustomVoiceAsync(exportVoiceItems);
+			loading.Message = "カスタムボイスの口パク生成中…";
+			var customVoices = await YmmpUtil.FilterCustomVoiceAsync(voiceItems);
 
 			sw.Stop();
 			Debug.WriteLine($"TIME[FilterCustomVoiceAsync]:{sw.ElapsedMilliseconds}");
@@ -205,7 +209,7 @@ public sealed class MainWindowViewModel
 			{
 				MakeCustomVoiceFaceItem(
 					maxLayer,
-					customVoices,
+					customVoices.ToList(),
 					ymmp,
 					LipSyncSettings,
 					CurrentYmmpFPS
@@ -223,8 +227,9 @@ public sealed class MainWindowViewModel
 			sw.Restart();
 
 			//APIボイス
+			loading.Message = "APIボイスの口パク生成中…";
 			maxLayer = YmmpUtil.GetMaxLayer(ymmp);
-			var apiVoices = await YmmpUtil.FilterAPIVoiceAsync(exportVoiceItems);
+			var apiVoices = await YmmpUtil.FilterAPIVoiceAsync(voiceItems);
 
 			//APIボイスの口パク生成
 			Debug.WriteLine(nameof(YmmpUtil.MakeAPIVoiceFaceItemAsync));
@@ -251,6 +256,7 @@ public sealed class MainWindowViewModel
 			Debug.WriteLine($"TIME[FilterAPIVoiceAync]:{sw.ElapsedMilliseconds}");
 
 			//出力
+			loading.Message = "ファイル保存中…";
 			var dir = Directory.Exists(CurrentYmmpPath)
 				? Path.GetDirectoryName(CurrentYmmpPath)!
 				: AppDomain.CurrentDomain.BaseDirectory;
@@ -290,12 +296,11 @@ public sealed class MainWindowViewModel
 			Manager.Info("保存成功", "保存しました", true);
 
 			sw.Stop();
-			Debug.WriteLine($"TIME[SaveAsync]:{sw.ElapsedMilliseconds.ToString()}");
+			Debug.WriteLine($"TIME[SaveAsync]:{sw.ElapsedMilliseconds}");
 
 			if(IsOpenWithSave){
 				await OpenAsync(csfd.FileName);
 			}
-
 		}));
 
 		//open license folder
@@ -340,7 +345,7 @@ public sealed class MainWindowViewModel
 		var sw = new System.Diagnostics.Stopwatch();
 		sw.Start();
 
-		customVoices
+		var filterd = customVoices
 			.AsParallel()
 			.Where(v => v is not null)
 			.Select(v =>
@@ -354,7 +359,9 @@ public sealed class MainWindowViewModel
 				return v;
 			})
 			.Where(v => v.HasLabFile)
-			.ToList()
+			.ToList();
+
+		filterd
 			.ForEach(async v =>
 			{
 				var f = new FileInfo(Path.ChangeExtension(v!.Hatsuon, "lab")!);
