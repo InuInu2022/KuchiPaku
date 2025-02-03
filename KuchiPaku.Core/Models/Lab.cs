@@ -85,11 +85,12 @@ public class Lab
 		return result;
 	}
 
-	public async ValueTask ChangeLengthByRateAsync(double percent){
-		if(Lines is null)
+	public ValueTask ChangeLengthByRateAsync(double percent)
+    {
+        if (Lines is null)
 		{
-			return;
-		}
+            return new ValueTask();
+        }
 
 		var rate = 100 / percent;
 		var origin = 0.0;
@@ -115,8 +116,9 @@ public class Lab
 		}
 
 		lines = newLines;
-		//});
-	}
+        return new ValueTask();
+        //});
+    }
 }
 
 /// <summary>

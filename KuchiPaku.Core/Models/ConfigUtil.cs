@@ -12,7 +12,7 @@ public static class ConfigUtil
                .SetBasePath(System.AppDomain.CurrentDomain.BaseDirectory)
                .AddJsonFile("appsettings.json")
                .Build();
-		Settings = configuration.Get<Settings>();
+		Settings = configuration.Get<Settings>() ?? new();
 	}
 }
 

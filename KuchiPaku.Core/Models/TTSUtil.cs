@@ -326,8 +326,8 @@ class TTSManager : ITTSManager, IDisposable
 		{
 			if (disposing)
 			{
-				// TODO: マネージド状態を破棄します (マネージド オブジェクト)
-				StopAsync();
+                // TODO: マネージド状態を破棄します (マネージド オブジェクト)
+                StopAsync().AsTask().Wait();
 				process?.Kill();
 			}
 
