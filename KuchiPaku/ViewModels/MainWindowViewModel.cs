@@ -303,7 +303,7 @@ public sealed class MainWindowViewModel
 		}));
 
 		//open license folder
-		OpenLicenses = CommandFactory.Create<RoutedEventArgs>(async _ =>
+		OpenLicenses = Command.Factory.Create<RoutedEventArgs>(async _ =>
 		{
 			var path = Path.Combine(
 				AppDomain.CurrentDomain.BaseDirectory,
@@ -312,10 +312,10 @@ public sealed class MainWindowViewModel
 			await OpenAsync(path);
 		});
 
-		OpenWebsite = CommandFactory.Create<RoutedEventArgs>(async _
+		OpenWebsite = Command.Factory.Create<RoutedEventArgs>(async _
 			=> await OpenAsync("https://github.com/InuInu2022/KuchiPaku"));
 
-		OpenYMM4Website = CommandFactory.Create<RoutedEventArgs>(async _
+		OpenYMM4Website = Command.Factory.Create<RoutedEventArgs>(async _
 			=> await OpenAsync("https://manjubox.net/ymm4/"));
 	}
 
