@@ -14,6 +14,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{B5A67F54-3624-4983-91B4-F7C03B0E5A37}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FluentCeVIOWrapper", "FluentCeVIOWrapper", "{C0575511-3034-44AF-A069-A3550FAE1A63}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCeVIOWrapper.Common", "libs\FluentCeVIOWrapper\FluentCeVIOWrapper.Common\FluentCeVIOWrapper.Common.csproj", "{918DB9F0-9CEF-4282-9590-BAE0107EE80A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,11 +34,19 @@ Global
 		{810817CC-80A7-4952-9630-BFA386B00EB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{810817CC-80A7-4952-9630-BFA386B00EB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{810817CC-80A7-4952-9630-BFA386B00EB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{918DB9F0-9CEF-4282-9590-BAE0107EE80A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{918DB9F0-9CEF-4282-9590-BAE0107EE80A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{918DB9F0-9CEF-4282-9590-BAE0107EE80A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{918DB9F0-9CEF-4282-9590-BAE0107EE80A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {37A64CEC-DCE3-4FE1-85F0-BAB3AB2DC26D}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C0575511-3034-44AF-A069-A3550FAE1A63} = {B5A67F54-3624-4983-91B4-F7C03B0E5A37}
+		{918DB9F0-9CEF-4282-9590-BAE0107EE80A} = {C0575511-3034-44AF-A069-A3550FAE1A63}
 	EndGlobalSection
 EndGlobal
