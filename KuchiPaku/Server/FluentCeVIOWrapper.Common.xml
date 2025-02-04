@@ -1,0 +1,864 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FluentCeVIOWrapper.Common</name>
+    </assembly>
+    <members>
+        <member name="T:FluentCeVIOWrapper.Common.FluentCeVIO">
+            <summary>
+            A wrapper library for FluentCeVIOWrapper Client
+            </summary>
+            <remarks>
+            * .NET Core系(.NET 5/6/...)でもCeVIOの.NET Framework APIにアクセスできるラッパーライブラリ
+            * async/awaitに対応したモダンな書き方ができます
+            </remarks>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.FluentCeVIO.PipeName">
+            <summary>
+            内部のプロセス間通信で使用される名前です。
+            複数サーバーを立てる場合はサーバーと共にこの名前を変更します。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.FluentCeVIO.CurrentPipeName">
+            <summary>
+            現在の内部のプロセス間通信で使用される名前です。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.FluentCeVIO.CurrentProduct">
+            <summary>
+            現在の制御CeVIO製品
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.FluentCeVIO.CurrentVersion">
+            <summary>
+            現在の制御しているCeVIOのバージョン
+            </summary>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.FactoryAsync(System.String,FluentCeVIOWrapper.Common.Product)">
+            <summary>
+            呼び出しのファクトリメソッド
+            </summary>
+            <param name="pipeName"><inheritdoc cref="F:FluentCeVIOWrapper.Common.FluentCeVIO.PipeName" path="/summary"/></param>
+            <param name="product">呼び出すCeVIO製品</param>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.CreateParam">
+            <summary>
+            まとめてパラメータを設定するための準備
+            メソッドチェーンでパラメータを指定できます
+            </summary>
+            <example>
+            <code>
+            var fcw = FluentCeVIO.FactoryAsync();
+            await fcw.CreateParam()
+            	.Cast("さとうささら")
+            	.Alpha(50)
+            	.Speed(75)
+            	.SendAsync();
+            </code>
+            </example>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.StartAsync">
+            <summary>
+            非同期で起動
+            元の<c>StartHost</c>
+            </summary>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.CloseAsync">
+            <summary>
+            非同期で終了処理
+            </summary>
+            <example>
+            <code>
+            await CloseHost();		//通常の使い方
+            var _ = CloseHost();	//同期的に処理
+            </code>
+            </example>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetHostVersionAsync">
+            <summary>
+            ホストアプリ（CeVIO）のバージョンを<see cref="T:System.Version" />型で返す
+            </summary>
+            <returns>バージョン</returns>
+            <seealso cref="T:System.Version"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetIsHostStartedAsync">
+            <summary>
+            ホストアプリ（CeVIO）が起動中かどうか
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetCastAsync(System.String)">
+            <summary>
+            キャスト(話者)を設定します。
+            </summary>
+            <param name="castName">キャスト名。利用可能なキャスト名の文字列は<see cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetAvailableCastsAsync"/>で取得可。</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetCastAsync"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetAvailableCastsAsync"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Cast(System.String)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetCastAsync">
+            <summary>
+            現在のキャスト(話者)を取得します。
+            </summary>
+            <returns>キャスト名</returns>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetCastAsync(System.String)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetVolumeAsync">
+            <summary>
+            音の大きさ（0～100）を取得します。
+            </summary>
+            <returns>音の大きさ（0～100）</returns>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetVolumeAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetVolumeAsync(System.UInt32)">
+            <summary>
+            音の大きさ（0～100）を設定します。
+            </summary>
+            <param name="volume">音の大きさ（0～100）</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetVolumeAsync"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Volume(System.UInt32)"/>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetSpeedAsync">
+            <summary>
+            話す速さ（0～100）を取得します。
+            </summary>
+            <returns>話す速さ（0～100）</returns>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetSpeedAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetSpeedAsync(System.UInt32)">
+            <summary>
+            話す速さ（0～100）を設定します。
+            </summary>
+            <param name="value">話す速さ（0～100）</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetSpeedAsync"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Speed(System.UInt32)"/>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetToneAsync">
+            <summary>
+            音の高さ（0～100）を取得します。
+            </summary>
+            <returns>音の高さ（0～100）</returns>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetToneAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetToneAsync(System.UInt32)">
+            <summary>
+            音の高さ（0～100）を設定します。
+            </summary>
+            <param name="value">音の高さ（0～100）</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetToneAsync"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Tone(System.UInt32)"/>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetAlphaAsync">
+            <summary>
+            声質（0～100）を取得します。
+            </summary>
+            <returns>声質（0～100）</returns>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetAlphaAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetAlphaAsync(System.UInt32)">
+            <summary>
+            声質（0～100）を設定します。
+            </summary>
+            <param name="value">声質（0～100）</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetAlphaAsync"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Alpha(System.UInt32)"/>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetToneScaleAsync">
+            <summary>
+            抑揚（0～100）を取得します。
+            </summary>
+            <returns>抑揚（0～100）</returns>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetToneScaleAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetToneScaleAsync(System.UInt32)">
+            <summary>
+            抑揚（0～100）を設定します。
+            </summary>
+            <param name="value">抑揚（0～100）</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetToneScaleAsync"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.ToneScale(System.UInt32)"/>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetComponentsAsync">
+            <summary>
+            現在のキャストの感情パラメータマップコレクションを取得します。
+            </summary>
+            <remarks>
+            戻り値は、元のAPIと異なり、汎用の<see cref="T:System.Collections.ObjectModel.ReadOnlyCollection`1"/>で返ります。
+            </remarks>
+            <seealso cref="T:FluentCeVIOWrapper.Common.Talk.TalkerComponent"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetCastAsync"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetCastAsync(System.String)"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetComponentsAsync(System.Collections.Generic.IEnumerable{FluentCeVIOWrapper.Common.Talk.TalkerComponent})"/>
+            <returns>感情パラメータの管理オブジェクト<see cref="T:FluentCeVIOWrapper.Common.Talk.TalkerComponent"/>の<see cref="T:System.Collections.ObjectModel.ReadOnlyCollection`1"/></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetComponentsAsync(System.Collections.Generic.IEnumerable{FluentCeVIOWrapper.Common.Talk.TalkerComponent})">
+            <summary>
+            現在のキャストの感情パラメータマップコレクションを設定します。
+            </summary>
+            <param name="value">感情パラメータの管理オブジェクト</param>
+            <seealso cref="T:FluentCeVIOWrapper.Common.Talk.TalkerComponent"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetComponentsAsync"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetAvailableCastsAsync">
+            <summary>
+            利用可能なキャスト名 <c>string[]</c> を取得します。
+            </summary>
+            <remarks>
+            備考：インストールされているボイスによります。
+            </remarks>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetCastAsync(System.String)"/>
+            <returns>利用可能なキャスト名の配列</returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.SpeakAsync(System.String,System.Boolean,FluentCeVIOWrapper.Common.SpeakSegment,System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            指定したセリフの再生を開始します。
+            </summary>
+            <example>
+            await SpeakAsync("こんにちは");
+            //再生終了まで待つ
+            await SpeakAsync("こんにちは",true);
+            </example>
+            <param name="text">セリフ。日本語は最大200文字（古いバージョンは150文字）。</param>
+            <param name="isWait">再生終了まで待つかどうか</param>
+            <param name="segment">セリフ文字列の分割モードの指定。</param>
+            <param name="token"></param>
+            <returns>セリフの再生に成功したかどうか。</returns>
+            <seealso cref="T:FluentCeVIOWrapper.Common.SpeakSegment"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.StopAsync">
+            <summary>
+            再生を停止します。
+            </summary>
+            <returns>成功した場合はtrue。それ以外の場合はfalse。</returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetTextDurationAsync(System.String)">
+            <summary>
+            指定したセリフの長さを取得します。
+            </summary>
+            <param name="text">セリフ。日本語は最大200文字（古いバージョンは150文字）。</param>
+            <returns>長さ。単位は秒。</returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetPhonemesAsync(System.String)">
+            <summary>
+            指定したセリフの音素単位のデータを取得します。
+            </summary>
+            <remarks>
+            リップシンク等に利用できます。
+            戻り値は、元のAPIと異なり、汎用の<see cref="T:System.Collections.ObjectModel.ReadOnlyCollection`1"/>で返ります。
+            </remarks>
+            <param name="text">セリフ。日本語は最大200文字（古いバージョンは150文字）。</param>
+            <returns>音素単位のデータのコレクション</returns>
+            <seealso cref="T:FluentCeVIOWrapper.Common.Models.PhonemeData"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIO.OutputWaveToFileAsync(System.String,System.String)">
+            <summary>
+            指定したセリフをWAVファイルとして出力します。
+            </summary>
+            <remarks>出力形式はサンプリングレート48kHz, ビットレート16bit, モノラルです。</remarks>
+            <param name="text">セリフ。</param>
+            <param name="path">出力先パス。</param>
+            <returns>成功した場合はtrue。それ以外の場合はfalse。</returns>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.FluentCeVIOParam">
+            <summary>
+            CeVIOにまとめてメソッドチェーン(Buiderパターン)でパラメータを指定できるパラメータクラス
+            </summary>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Create(FluentCeVIOWrapper.Common.FluentCeVIO)">
+            <summary>
+            メソッドチェーンでパラメータを指定できるパラメータクラスのファクトリメソッド
+            最後に <see cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.SendAsync"/>を呼ぶ
+            </summary>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.CreateParam"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.SendAsync"/>
+            <param name="fcw"><see cref="T:FluentCeVIOWrapper.Common.FluentCeVIO"/>インスタンス</param>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Alpha(System.UInt32)">
+            <inheritdoc cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetAlphaAsync(System.UInt32)"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetAlphaAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Cast(System.String)">
+            <inheritdoc cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetCastAsync(System.String)"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetCastAsync(System.String)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Components(System.Collections.Generic.IEnumerable{FluentCeVIOWrapper.Common.Talk.TalkerComponent})">
+            <inheritdoc cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetComponentsAsync(System.Collections.Generic.IEnumerable{FluentCeVIOWrapper.Common.Talk.TalkerComponent})"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetComponentsAsync(System.Collections.Generic.IEnumerable{FluentCeVIOWrapper.Common.Talk.TalkerComponent})"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.GetComponentsAsync"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Emotions(System.Collections.Generic.Dictionary{System.String,System.UInt32})">
+            <summary>
+            <c>Components</c>の簡易版。
+            </summary>
+            <example>
+            <code>
+            .Emotions(new(){["怒り"]=15,["普通"]=50})
+            </code>
+            </example>
+            <param name="list">感情名、値（0~100）のDictionaryを与えてください</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Components(System.Collections.Generic.IEnumerable{FluentCeVIOWrapper.Common.Talk.TalkerComponent})"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Speed(System.UInt32)">
+            <inheritdoc cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetSpeedAsync(System.UInt32)"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetSpeedAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Tone(System.UInt32)">
+            <inheritdoc cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetToneAsync(System.UInt32)"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetToneAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.ToneScale(System.UInt32)">
+            <inheritdoc cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetToneScaleAsync(System.UInt32)"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetToneScaleAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Volume(System.UInt32)">
+            <inheritdoc cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetVolumeAsync(System.UInt32)"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SetVolumeAsync(System.UInt32)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.SendAsync">
+            <summary>
+            メソッドチェーンで指定したパラメータをまとめて設定する
+            必ず最後に呼ぶ
+            </summary>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.Create(FluentCeVIOWrapper.Common.FluentCeVIO)"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.SendAndSpeakAsync(System.String,System.Boolean,FluentCeVIOWrapper.Common.SpeakSegment,System.Nullable{System.Threading.CancellationToken})"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.SendAndSpeakAsync(System.String,System.Boolean,FluentCeVIOWrapper.Common.SpeakSegment,System.Nullable{System.Threading.CancellationToken})">
+            <summary>
+            メソッドチェーンで指定したパラメータをまとめて設定してすぐに発声する
+            必ず最後に呼ぶ
+            </summary>
+            <inheritdoc cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SpeakAsync(System.String,System.Boolean,FluentCeVIOWrapper.Common.SpeakSegment,System.Nullable{System.Threading.CancellationToken})"/>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOParam.SendAsync"/>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.FluentCeVIOUtil">
+            <summary>
+            ユーティリティクラス
+            </summary>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOUtil.GetCastIdAsync(FluentCeVIOWrapper.Common.FluentCeVIO,System.String)">
+            <summary>
+            現在のキャストまたは指定したキャスト名からキャストIDを取得
+            </summary>
+            <param name="fcw"></param>
+            <param name="castName">キャスト名。未指定の場合は現在のキャストで取得。</param>
+            <returns>内部的なキャストID文字列（CeVIO AI:<c>CTNV-xxx-x</c>, CeVIO CS: <c>X</c>）</returns>
+            <exception cref="T:System.NotSupportedException"><see cref="P:FluentCeVIOWrapper.Common.FluentCeVIO.CurrentProduct"/>が<see cref="F:FluentCeVIOWrapper.Common.Product.CeVIO_AI"/>, <see cref="F:FluentCeVIOWrapper.Common.Product.CeVIO_CS"/>でない場合は未対応</exception>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOUtil.IsEnglishCastNameAsync(FluentCeVIOWrapper.Common.FluentCeVIO,System.String)">
+            <summary>
+            キャスト名が英語音源かどうか
+            </summary>
+            <remarks>
+            キャスト名（ボイス名）から英語音源かどうかを判定します。
+            IDがわかっている場合は、
+            <see cref="M:FluentCeVIOWrapper.Common.FluentCeVIOUtil.IsEnglishCastId(FluentCeVIOWrapper.Common.FluentCeVIO,System.String)"/>の方が高速で判定します。
+            </remarks>
+            <param name="fcw"></param>
+            <param name="castName">キャスト名。未指定の場合は現在の指定されたキャストを判定します。</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOUtil.IsEnglishCastId(FluentCeVIOWrapper.Common.FluentCeVIO,System.String)"/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.FluentCeVIOUtil.IsEnglishCastId(FluentCeVIOWrapper.Common.FluentCeVIO,System.String)">
+            <summary>
+            キャストIDが英語音源のものかどうか
+            </summary>
+            <param name="fcw"></param>
+            <param name="castId">キャストID</param>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIOUtil.IsEnglishCastNameAsync(FluentCeVIOWrapper.Common.FluentCeVIO,System.String)"/>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.ITalker">
+            <summary>
+            メソッド・プロパティ名共有のためのInterface
+            Interface for <c>Talker</c>
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalker.Volume">
+            <summary>
+            音の大きさ（0～100）を取得または設定します。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalker.Speed">
+            <summary>
+            話す速さ（0～100）を取得または設定します。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalker.Tone">
+            <summary>
+            音の高さ（0～100）を取得または設定します。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalker.Alpha">
+            <summary>
+            声質（0～100）を取得または設定します。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalker.ToneScale">
+            <inheritdoc/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalker.Components">
+            <inheritdoc/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalker.Cast">
+            <inheritdoc/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalker.AvailableCasts">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.ITalker.Speak(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.ITalker.Stop">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.ITalker.GetTextDuration(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.ITalker.GetPhonemes(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.ITalker.OutputWaveToFile(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.IServiceControl">
+            <summary>
+            メソッド・プロパティ名共有のためのInterface
+            for ServiceControl
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.IServiceControl.HostVersion">
+             <summary>
+            【CeVIO AI】のバージョンを取得します。
+             </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.IServiceControl.IsHostStarted">
+            <summary>
+            【CeVIO AI】にアクセス可能かどうか取得します。
+            </summary>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.IServiceControl.StartHost(System.Boolean)">
+            <summary>
+            【CeVIO AI】を起動
+            </summary>
+            <param name="noWait"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.IServiceControl.CloseHost(FluentCeVIOWrapper.Common.Talk.HostCloseMode)">
+            <summary>
+            終了を要求
+            </summary>
+            <param name="mode"></param>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.ISpeakingState">
+            <summary>
+            [<see cref="N:FluentCeVIOWrapper"/>] 利用しません。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ISpeakingState.IsCompleted">
+            <inheritdoc/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ISpeakingState.IsSucceeded">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.ISpeakingState.Wait">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.ISpeakingState.Wait(System.Double)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.IPhonemeData">
+            <summary>
+            音素データの単位オブジェクト。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.IPhonemeData.Phoneme">
+            <summary>
+            音素を取得します。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.IPhonemeData.StartTime">
+            <summary>
+            開始時間を取得します。単位は秒。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.IPhonemeData.EndTime">
+            <summary>
+            終了時間を取得します。単位は秒。
+            </summary>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.HostCloseMode">
+            <summary>
+            [<see cref="N:FluentCeVIOWrapper"/>] 利用しません。
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Talk.HostCloseMode.Default">
+            <inheritdoc/>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.Environment.IEnvironment">
+            <summary>
+            Product env path default values
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.IEnvironment.Product">
+            <summary>
+            CeVIOの種類
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.IEnvironment.DllName">
+            <summary>
+            dllの名称
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.IEnvironment.DllPath">
+            <summary>
+            デフォルトのdllのpath
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.IEnvironment.Service">
+            <summary>
+            ServiceControll class
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.IEnvironment.Talker">
+            <summary>
+            Talker class
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.IEnvironment.Agent">
+            <summary>
+            TalkerAgent class
+            </summary>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.Environment.AI">
+            <summary>
+            CeVIO AI environment
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.AI.Product">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.AI.DllName">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.AI.ProgDir">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.AI.DllPath">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.AI.Service">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.AI.Talker">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.AI.Agent">
+            <inheritdoc />
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.Environment.CS">
+            <summary>
+            CeVIO Creative Studio (64bit) environment
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.CS.Product">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.CS.DllName">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.CS.ProgDir">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.CS.DllPath">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.CS.Service">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.CS.Talker">
+            <inheritdoc />
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.Environment.CS.Agent">
+            <inheritdoc />
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.ITalkerComponent">
+            <summary>
+            感情パラメータの単位オブジェクトインターフェイス。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalkerComponent.Id">
+            <summary>
+            キャストの識別子を取得します。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalkerComponent.Name">
+            <summary>
+            感情の名前を取得します。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.ITalkerComponent.Value">
+            <summary>
+            感情の値（0～100）を取得または設定します。
+            </summary>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.HostStartResult">
+            <summary>
+            <see cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.StartAsync"/> の結果コードを表します。
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Talk.HostStartResult.HostError">
+            <summary>
+            アプリケーション起動後、エラーにより終了。
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Talk.HostStartResult.StartingFailed">
+            <summary>
+            プロセスの起動に失敗。
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Talk.HostStartResult.FileNotFound">
+            <summary>
+            実行ファイルが見つからない。
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Talk.HostStartResult.NotRegistered">
+            <summary>
+            インストール状態が不明。
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Talk.HostStartResult.Succeeded">
+            <summary>
+             成功。起動済みの場合も含みます。
+            </summary>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Talk.TalkerComponent">
+            <summary>
+            感情パラメータの単位オブジェクト。
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.TalkerComponent.Id">
+            <inheritdoc/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.TalkerComponent.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Talk.TalkerComponent.Value">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Talk.TalkerComponent.#ctor(System.String,System.String,System.UInt32)">
+            <summary>
+            感情パラメータの単位オブジェクトのコンストラクタ
+            </summary>
+            <param name="id">
+            	<inheritdoc cref="P:FluentCeVIOWrapper.Common.Talk.TalkerComponent.Id" path="/summary"/></param>
+            <param name="name">
+            	<inheritdoc cref="P:FluentCeVIOWrapper.Common.Talk.TalkerComponent.Name" path="/summary"/>
+            	</param>
+            <param name="value">
+            	<inheritdoc cref="P:FluentCeVIOWrapper.Common.Talk.TalkerComponent.Value" path="/summary"/>
+            	</param>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.CeVIOTalkMessage">
+            <summary>
+            内部の通信で使われるメッセージクラス
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.CeVIOTalkMessage.Id">
+            <summary>
+            メッセージの識別子ID
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.CeVIOTalkMessage.Product">
+            <summary>
+            メッセージの対象CeVIO製品
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.CeVIOTalkMessage.ServerCommand">
+            <summary>
+            A command message text for server
+            </summary>
+            <seealso cref="T:FluentCeVIOWrapper.Common.ServerCommand"/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.CeVIOTalkMessage.ServerHost">
+            <inheritdoc cref="T:FluentCeVIOWrapper.Common.Host"/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.CeVIOTalkMessage.ServerCallName">
+            <summary>
+            やり取りする関数の名前
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.CeVIOTalkMessage.ServerCallValue">
+            <summary>
+            やり取りする値
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.CeVIOTalkMessage.ServerCallArgValues">
+            <summary>
+            やり取りする場合の関数の引数
+            </summary>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.CeVIOTalkMessage.ToString">
+            <inheritdoc />
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Models.FCWFormatter">
+            <summary>
+            FCW formatter
+            </summary>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Models.FCWFormatter.InternalFormatter">
+            <summary>
+            内部フォーマッター
+            </summary>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Models.FCWFormatter.#ctor(Ceras.SerializerConfig)">
+            <summary>
+            コンストラクタ
+            </summary>
+            <param name="config"></param>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Models.FCWFormatter.SerializeInternal(System.Object)">
+            <summary>
+            シリアライズ
+            </summary>
+            <param name="obj"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Models.FCWFormatter.DeserializeInternal``1(System.Byte[])">
+            <summary>
+            デシリアライズ
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="bytes"></param>
+            <returns></returns>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Models.PhonemeData">
+            <inheritdoc/>
+        </member>
+        <member name="M:FluentCeVIOWrapper.Common.Models.PhonemeData.#ctor(System.Double,System.Double,System.String)">
+            <inheritdoc/>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="phoneme"></param>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Models.PhonemeData.Phoneme">
+            <inheritdoc/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Models.PhonemeData.StartTime">
+            <inheritdoc/>
+        </member>
+        <member name="P:FluentCeVIOWrapper.Common.Models.PhonemeData.EndTime">
+            <inheritdoc/>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Host">
+            <summary>
+            ホストアプリ（CeVIO）の内部的なコンポーネント種別
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Host.Agent">
+            <summary>
+            Agent
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Host.Service">
+            <summary>
+            Service
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Host.Talker">
+            <summary>
+            Talker
+            </summary>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.Product">
+            <summary>
+            CeVIO products
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Product.CeVIO_CS">
+            <summary>
+            CeVIO Creative Studio ver. 7.0 >=
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.Product.CeVIO_AI">
+            <summary>
+            CeVIO AI ver.8.0 >=
+            </summary>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.ServerCommand">
+            <summary>
+            通信で使われるコマンド定義
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.ServerCommand.CallMethod">
+            <summary>
+            メソッド呼び出しコマンド
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.ServerCommand.GetProperty">
+            <summary>
+            プロパティ取得コマンド
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.ServerCommand.SetProperty">
+            <summary>
+            プロパティ設定コマンド
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.ServerCommand.Echo">
+            <summary>
+            debug use only
+            </summary>
+        </member>
+        <member name="T:FluentCeVIOWrapper.Common.SpeakSegment">
+            <summary>
+            セリフをしゃべる際の分割方法を指定します
+            </summary>
+            <remarks>
+            文字数制限はバージョンと言語によって異なります。文字数制限を超えたセリフを喋らせた場合、そのままではエラーが発生し、はみ出した文字は発声されません。
+            <see cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SpeakAsync(System.String,System.Boolean,FluentCeVIOWrapper.Common.SpeakSegment,System.Nullable{System.Threading.CancellationToken})"/>の<c>segment</c>でこの指定をすることでエラーを発生させずに長文読み上げが可能になります。
+            <list type="bullet">
+                <listheader>
+                   <term>CeVIO CS</term>
+                   <description>150文字</description>
+                </listheader>
+                <item>
+                   <term>CeVIO AI ver.8.1.19より前</term>
+                   <description>150文字</description>
+                </item>
+                <item>
+                   <term>CeVIO AI 日本語 ver.8.1.19以降</term>
+                   <description>200文字</description>
+                </item>
+                <item>
+                   <term>CeVIO AI 英語 ver.8.1.19以降</term>
+                   <description>500文字</description>
+                </item>
+            </list>
+            </remarks>
+            <seealso cref="M:FluentCeVIOWrapper.Common.FluentCeVIO.SpeakAsync(System.String,System.Boolean,FluentCeVIOWrapper.Common.SpeakSegment,System.Nullable{System.Threading.CancellationToken})"/>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.SpeakSegment.NoCheck">
+            <summary>
+            セリフ分割せず、文字数制限もチェックしません。
+            文字数制限を超えていた場合はエラーになります。
+            文字数が短いことがわかっている場合や、分割処理を自分で行う場合に指定してください。
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.SpeakSegment.Short">
+            <summary>
+            セリフを最初の句読点で分割し、なるべく短くなるようにします。
+            </summary>
+        </member>
+        <member name="F:FluentCeVIOWrapper.Common.SpeakSegment.Long">
+            <summary>
+            セリフをなるべく文字数制限に近い文字数で分割し、なるべく長くなるようにします。
+            </summary>
+        </member>
+    </members>
+</doc>
