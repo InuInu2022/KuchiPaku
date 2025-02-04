@@ -58,7 +58,7 @@ public static class TTSUtil
 		string text,
 		int fps,
 		double playBackRate
-    ){
+	){
 		var manager = await CheckTTSInitAsync(tts);
 
 		return await manager.GetPhonemeAsync(voice, voiceParam, text, fps, playBackRate);
@@ -89,8 +89,8 @@ public static class TTSUtil
 					));
 		});
 
-        if(!targetTTS.IsAwaked
-               && !targetTTS.IsAwaking){
+		if(!targetTTS.IsAwaked
+			   && !targetTTS.IsAwaking){
 			lock (targetTTS)
 			{
 				var _ = targetTTS.AwakeAsync();
@@ -104,7 +104,7 @@ public static class TTSUtil
 class TTSManager : ITTSManager, IDisposable
 {
 	public TTSProduct TTS { get; }
-    public APIType Type { get; }
+	public APIType Type { get; }
 	public bool IsAwaked { get => isAwaked; }
 	public bool IsAwaking { get => isAwaking; }
 
@@ -120,7 +120,7 @@ class TTSManager : ITTSManager, IDisposable
 		TTSProduct tts,
 		APIType type,
 		string? dllPath = ""
-    )
+	)
 	{
 		TTS = tts;
 		Type = type;
@@ -129,8 +129,8 @@ class TTSManager : ITTSManager, IDisposable
 
 	public async ValueTask AwakeAsync()
 	{
-        switch (Type)
-        {
+		switch (Type)
+		{
 			case APIType.TypeCeVIO:
 			{
 				//awake server
@@ -164,28 +164,39 @@ class TTSManager : ITTSManager, IDisposable
 					//var bs = Encoding.GetEncoding("Shift_JIS").GetBytes();
 					//var b8 = Encoding.GetEncoding("UTF-8").GetBytes(process.StandardOutput.ReadToEnd());
 					//Debug.WriteLine("STDOUT "+Encoding.GetEncoding("UTF-8").GetString(b8));
-					await Task.Delay(2000);
+					//await Task.Delay(2000);
 				}
 
-                //Client lib awake
-                var p = TTS switch
-                {
-                    TTSProduct.CeVIO_AI => Product.CeVIO_AI,
-                    TTSProduct.CeVIO_CS => Product.CeVIO_CS,
-                    _ => Product.CeVIO_AI
-                };
-                fcw = await FluentCeVIO.FactoryAsync(
-                          pipeName: $"KuchiPaku_{TTS}",
-                          product: p);
-                var result = await fcw.StartAsync();
-                if (result is null)
-                {
-                    throw new Exception("cevio start result is null");
-                }
-                else if (result != CeVIOTalk.HostStartResult.Succeeded){
+				//Client lib awake
+				var p = TTS switch
+				{
+					TTSProduct.CeVIO_AI => Product.CeVIO_AI,
+					TTSProduct.CeVIO_CS => Product.CeVIO_CS,
+					_ => Product.CeVIO_AI
+				};
+				Debug.WriteLine($"p: {p}");
+				try
+				{
+					fcw = await FluentCeVIO
+						.FactoryAsync(
+							pipeName: $"KuchiPaku_{TTS}",
+							product: p);
+				}
+				catch (System.Exception e)
+				{
+					Debug.WriteLine($"fcw e: {e.Message}");
+					throw;
+				}
+				Debug.WriteLine($"fcw: {fcw}");
+				var result = await fcw
+					.StartAsync()
+					.ConfigureAwait(false)
+					;	//ここで戻ってこない、なぜ？
+				Debug.WriteLine($"result: {result}");
+				if (result != CeVIOTalk.HostStartResult.Succeeded){
 					isAwaking = false;
 					throw new Exception($"{TTS} awake Error:{result}");
-                }
+				}
 
 				isAwaking = false;
 				isAwaked = true;
@@ -193,18 +204,18 @@ class TTSManager : ITTSManager, IDisposable
 
 				break;
 				//}
-		    }
+			}
 
-            case APIType.TypeOther:
-            default:
+			case APIType.TypeOther:
+			default:
 				{
 					isAwaking = false;
 					//
 					throw new NotSupportedException("not supported yet.");
 					//break;
 				}
-	    }
-    }
+		}
+	}
 
 	public async ValueTask StopAsync()
 	{
@@ -212,14 +223,14 @@ class TTSManager : ITTSManager, IDisposable
 		{
 			case APIType.TypeCeVIO:
 			{
-                await Task.Run(() => process?.Kill());
+				await Task.Run(() => process?.Kill());
 				isAwaked = false;
 				isAwaking = false;
 				await Task.Delay(1000);
 				break;
-            }
+			}
 
-            default:
+			default:
 				break;
 		}
 	}
@@ -230,19 +241,19 @@ class TTSManager : ITTSManager, IDisposable
 		string text,
 		int fps = 30,
 		double playBackRate = 100.0
-    ){
+	){
 		switch (Type)
 		{
 			case APIType.TypeCeVIO:
 			{
-                if(fcw is null)
-                {
-                    throw new Exception($"{nameof(FluentCeVIO)} is null");
-                }
+				if(fcw is null)
+				{
+					throw new Exception($"{nameof(FluentCeVIO)} is null");
+				}
 
-                if(await fcw.GetIsHostStartedAsync()){
-                    await fcw.StartAsync();
-                }
+				if(await fcw.GetIsHostStartedAsync()){
+					await fcw.StartAsync();
+				}
 
 				Debug.WriteLine(
 					$"{voice.Arg}「{text}」\n"+
@@ -266,9 +277,9 @@ class TTSManager : ITTSManager, IDisposable
 				var speed = ParamConverter.Speed(voiceParam.Speed, Type);
 				//await fcw.SetSpeedAsync((uint)speed);
 				var tone = ParamConverter.Tone(voiceParam.Tone, Type);
-                //await fcw.SetToneAsync((uint)tone);
+				//await fcw.SetToneAsync((uint)tone);
 				var toneScale = ParamConverter.ToneScale(voiceParam.ToneScale, Type);
-                //await fcw.SetToneScaleAsync((uint)toneScale);
+				//await fcw.SetToneScaleAsync((uint)toneScale);
 				//await fcw.SetVolumeAsync((uint)voiceParam);
 
 				//set component
@@ -311,9 +322,9 @@ class TTSManager : ITTSManager, IDisposable
 						))
 					.ToList()
 					.AsReadOnly();
-            }
+			}
 
-            default:
+			default:
 				break;
 		}
 
@@ -326,8 +337,8 @@ class TTSManager : ITTSManager, IDisposable
 		{
 			if (disposing)
 			{
-                // TODO: マネージド状態を破棄します (マネージド オブジェクト)
-                StopAsync().AsTask().Wait();
+				// TODO: マネージド状態を破棄します (マネージド オブジェクト)
+				_ = StopAsync();
 				process?.Kill();
 			}
 
@@ -354,8 +365,8 @@ class TTSManager : ITTSManager, IDisposable
 
 interface ITTSManager{
 	TTSProduct TTS { get; }
-    APIType Type { get; }
-    bool IsAwaked { get;}
+	APIType Type { get; }
+	bool IsAwaked { get;}
 	bool IsAwaking { get; }
 
 	ValueTask AwakeAsync();
@@ -380,7 +391,7 @@ record TTSTabel{
 		{TTSProduct.SHAREVOX, APIType.TypeVOICEVOX},
 	};
 
-    /// <summary>
+	/// <summary>
 	/// ymmpの <c>Voice.Api</c> から <c>TTSProduct</c> 変換
 	/// </summary>
 	/// <see cref="Voice.Api"/>
@@ -395,17 +406,17 @@ record TTSTabel{
 
 //TODO:export to json
 public enum TTSProduct{
-    CeVIO_AI,
-    CeVIO_CS,
-    AIVOICE,
-    VOICEVOX,
-    SHAREVOX,
+	CeVIO_AI,
+	CeVIO_CS,
+	AIVOICE,
+	VOICEVOX,
+	SHAREVOX,
 }
 public enum APIType{
-    TypeCeVIO,
-    TypeAIVOICE,
-    TypeVOICEVOX,
-    TypeOther = 99
+	TypeCeVIO,
+	TypeAIVOICE,
+	TypeVOICEVOX,
+	TypeOther = 99
 }
 
 public static class ParamConverter

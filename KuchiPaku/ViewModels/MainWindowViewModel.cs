@@ -206,7 +206,7 @@ public sealed class MainWindowViewModel
 
 			try
 			{
-				MakeCustomVoiceFaceItem(
+				YmmpUtil.MakeCustomVoiceFaceItem(
 					maxLayer,
 					customVoices.ToList(),
 					ymmp,
@@ -331,6 +331,7 @@ public sealed class MainWindowViewModel
 		});
 	}
 
+	/*
 	public void MakeCustomVoiceFaceItem(
 		int maxLayer,
 		IEnumerable<YmmVoiceItem> customVoices,
@@ -395,11 +396,11 @@ public sealed class MainWindowViewModel
 				);
 			})
 			;
-			//*/
 
 		sw.Stop();
 		Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds}");
 	}
+	*/
 
 	[PropertyChanged(nameof(SelectedCharaItem))]
 	private async ValueTask SelectedCharaItemChangedAsync(CharacterListViewModel item){
