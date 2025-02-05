@@ -36,7 +36,7 @@ public class LipSyncImageViewModel
 		LipSyncImageLineViewModel? selectedLipSyncItem = null
 	)
 	{
-		ImageList = new ObservableCollection<LipSyncImageLineViewModel>();
+		ImageList = [];
 		Id = id;
 		Name = name;
 		ImageList = imageList;
@@ -52,13 +52,10 @@ public class LipSyncImageViewModel
 		Debug.WriteLine($"SelectedLipSyncItem: {Name} {selected.ImageName}");
 
 		if(MainWindowVM?.LipSyncSettings is null)return;
-		if(!MainWindowVM.LipSyncSettings.ContainsKey(CharacterName))return;
+		if(!MainWindowVM.LipSyncSettings.TryGetValue(CharacterName, out Models.LipSyncOption? value))return;
 
 		var p = selected.Path;
-
-		MainWindowVM
-			.LipSyncSettings[CharacterName]
-			.MousePhenomeImagePair[Id]
+		value.MousePhonemeImagePair[Id]
 			= await Task.Run(()=>Path.GetFileName(p)!);
 
 
@@ -71,11 +68,8 @@ public class LipSyncImageViewModel
 
 		if(MainWindowVM?.LipSyncSettings is null)return;
 
-		if(!MainWindowVM.LipSyncSettings.ContainsKey(CharacterName))return;
-
-		MainWindowVM
-			.LipSyncSettings[CharacterName]
-			.MousePhenomeImagePair[Id]
+		if(!MainWindowVM.LipSyncSettings.TryGetValue(CharacterName, out Models.LipSyncOption? value))return;
+		value.MousePhonemeImagePair[Id]
 			= await Task.Run(()=>Path.GetFileName(item.Path)!);
 
 		Debug.WriteLine($"RipSyncSettings[{CharacterName}]:[{Id}]:{Path.GetFileName(item.Path)!}");

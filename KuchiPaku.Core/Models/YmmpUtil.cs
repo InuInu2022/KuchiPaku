@@ -196,7 +196,7 @@ public static partial class YmmpUtil
 		}
 
 		var consoOpt = lipSyncOption.ConsonantOption;
-		var images = lipSyncOption.MousePhenomeImagePair;
+		var images = lipSyncOption.MousePhonemeImagePair;
 
 		string[] VOWELS_A = { "a", "A", "aa", "ae", "ah", "ax", "aw", "axr", "ay" };
 		string[] VOWELS_I = { "i", "I", "ih", "iy", "y" };

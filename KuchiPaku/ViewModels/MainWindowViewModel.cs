@@ -1,25 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-
-using Microsoft.WindowsAPICodePack.Dialogs;
-
-using Epoxy;
-
-using KuchiPaku.Models;
-using System.Diagnostics;
-using System.Linq;
-using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
 using Enterwell.Clients.Wpf.Notifications;
+using Epoxy;
+using KuchiPaku.Models;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace KuchiPaku.ViewModels;
 
-public enum Page{
-    Home
+public enum Page
+{
+	Home,
 }
 
 [ViewModel]
@@ -38,9 +36,10 @@ public sealed class MainWindowViewModel
 
 	public ObservableCollection<LipSyncImageViewModel>? LipSyncImages { get; set; }
 
-	public ConsonantOption CurrentConsonantOption { get; set; } = ConsonantOption.CONTINUE_BEFORE_VOWEL;
-	public IEnumerable<ConsonantOption> ConsonantOptionList { get; set; }
-			= Enum.GetValues(typeof(ConsonantOption)).Cast<ConsonantOption>();
+	public ConsonantOption CurrentConsonantOption { get; set; } =
+		ConsonantOption.CONTINUE_BEFORE_VOWEL;
+	public IEnumerable<ConsonantOption> ConsonantOptionList { get; set; } =
+		Enum.GetValues<ConsonantOption>().Cast<ConsonantOption>();
 
 	public Command? SaveYmmp { get; set; }
 	public Command? OpenLicenses { get; set; }
@@ -61,7 +60,7 @@ public sealed class MainWindowViewModel
 
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private string? DebuggerDisplay => ToString();
-	private static readonly string[] extensionTexts = new string[] { ".png",".gif",",webp"};
+	static readonly string[] ExtensionTexts = [".png", ".gif", ",webp"];
 
 	public MainWindowViewModel()
 	{
@@ -73,7 +72,8 @@ public sealed class MainWindowViewModel
 
 		KuchiPaku.Core.Models.ConfigUtil.LoadConfig();
 		var settings = KuchiPaku.Core.Models.ConfigUtil.Settings;
-		foreach(var i in settings!.TalkSoftInterfaces!){
+		foreach (var i in settings!.TalkSoftInterfaces!)
+		{
 			Debug.WriteLine($"{i.Type}:{i.DllPath}");
 		}
 
@@ -85,8 +85,7 @@ public sealed class MainWindowViewModel
 				RestoreDirectory = true,
 				IsFolderPicker = false,
 			};
-			cofd.Filters
-				.Add(new CommonFileDialogFilter("YMM4プロジェクトファイル", "*.ymmp"));
+			cofd.Filters.Add(new CommonFileDialogFilter("YMM4プロジェクトファイル", "*.ymmp"));
 			if (cofd.ShowDialog() != CommonFileDialogResult.Ok)
 			{
 				return;
@@ -107,12 +106,11 @@ public sealed class MainWindowViewModel
 				//TODO:support psd tachie
 				.Where(v => v.TachieType is not YmmpTachieType.PsdTachie)
 				.Select(v => new CharacterListViewModel
-					{
-						Name = v.Name,
-						DirectoryPath = v.TachieCharacterParameter.Directory,
-						DefaultMouthImgPath = v.TachieDefaultItemParameter.Mouth
-					}
-				);
+				{
+					Name = v.Name,
+					DirectoryPath = v.TachieCharacterParameter.Directory,
+					DefaultMouthImgPath = v.TachieDefaultItemParameter.Mouth,
+				});
 
 			LipSyncSettings.Clear();
 			viewList
@@ -123,11 +121,7 @@ public sealed class MainWindowViewModel
 						v.Name ?? "",
 						LipSyncOption.GetDefault(
 							v.Name ?? "",
-							Path.Combine(
-								v.DirectoryPath ?? "",
-								"口"
-							)
-								?? "",
+							Path.Combine(v.DirectoryPath ?? "", "口") ?? "",
 							v.DefaultMouthImgPath
 						)
 					);
@@ -137,194 +131,262 @@ public sealed class MainWindowViewModel
 			Characters = [.. viewList];
 		});
 
-		SaveYmmp = Command.Factory.Create((Func<RoutedEventArgs, ValueTask>)(async _ =>
-		{
-			if (CurrentYmmp is null)
-			{
-				Manager.Warn(
-					"YMM4プロジェクトが読み込まれていません",
-					"YMM4プロジェクトファイル(.ymmp)を最初に読み込んでください。"
-				);
-				return;
-			}
-
-			var sw = new System.Diagnostics.Stopwatch();
-			sw.Start();
-
-			var loading = Manager.Loading("保存中", "保存しています…");
-
-			loading.Message = "ボイスアイテムを解析中…";
-
-			var ymmp = await YmmpUtil.CopyDeepAsync(CurrentYmmp);
-
-			var voiceItems = await YmmpUtil.ParseVoiceItemsAsync(ymmp);
-
-			sw.Stop();
-			Debug.WriteLine($"TIME[ParseVoiceItemsAsync]:{sw.ElapsedMilliseconds}");
-			sw.Restart();
-
-			if (voiceItems is null)
-			{
-				Manager.Dismiss(loading);
-				Manager.Info("ボイスアイテムなし","対象のボイスアイテムがありませんでした。");
-				return;
-			}
-
-			//filter exportable
-			loading.Message = "出力対象のフィルタ…";
-			voiceItems = voiceItems
-				.Where(v => {
-					if( Characters.Any(c => c.Name == v.CharacterName) ){
-						return Characters.First(c => c.Name == v.CharacterName).IsExport;
-					}else{
-						return false;
-					}
-				})
-				.ToList();
-
-			var maxLayer = YmmpUtil.GetMaxLayer(ymmp);
-			Debug.WriteLine($"MaxLayer: {maxLayer}");
-
-			//カスタムボイス
-			//カスタムボイスは同じ場所の.labファイルを探して口パク生成
-			loading.Message = "カスタムボイスの口パク生成中…";
-			var customVoices = await YmmpUtil.FilterCustomVoiceAsync(voiceItems);
-
-			sw.Stop();
-			Debug.WriteLine($"TIME[FilterCustomVoiceAsync]:{sw.ElapsedMilliseconds}");
-			sw.Restart();
-
-			var name = SelectedCharaItem?.Name ?? "";
-			//var hasRipSyncSet = RipSyncSettings?.ContainsKey(name) ?? false;
-
-			try
-			{
-				YmmpUtil.MakeCustomVoiceFaceItem(
-					maxLayer,
-					customVoices.ToList(),
-					ymmp,
-					LipSyncSettings,
-					CurrentYmmpFPS
-				);
-			}
-			catch (System.Exception e)
-			{
-				logger.Error(e);
-				Manager.Dismiss(loading);
-				return;
-			}
-
-			sw.Stop();
-			Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds}");
-			sw.Restart();
-
-			//APIボイス
-			loading.Message = "APIボイスの口パク生成中…";
-			maxLayer = YmmpUtil.GetMaxLayer(ymmp);
-			var apiVoices = await YmmpUtil.FilterAPIVoiceAsync(voiceItems);
-
-			//APIボイスの口パク生成
-			Debug.WriteLine(nameof(YmmpUtil.MakeAPIVoiceFaceItemAsync));
-			try
-			{
-				await YmmpUtil.MakeAPIVoiceFaceItemAsync(
-					maxLayer,
-					apiVoices,
-					ymmp,
-					LipSyncSettings,
-					CurrentYmmpFPS);
-			}
-			catch (System.Exception e)
-			{
-				Debug.WriteLine($"ERROR:{e.Message}");
-				logger.Error(e);
-				Manager.Dismiss(loading);
-				return;
-			}
-
-			sw.Stop();
-			Debug.WriteLine($"TIME[FilterAPIVoiceAsync]:{sw.ElapsedMilliseconds}");
-
-			//出力
-			loading.Message = "ファイル保存中…";
-			var dir = Directory.Exists(CurrentYmmpPath)
-				? Path.GetDirectoryName(CurrentYmmpPath)!
-				: AppDomain.CurrentDomain.BaseDirectory;
-			using var csfd = new CommonSaveFileDialog()
-			{
-				Title = "保存するYMM4プロジェクトファイルを選択",
-				RestoreDirectory = true,
-				DefaultDirectory = dir,
-				DefaultFileName =
-					Path.GetFileNameWithoutExtension(CurrentYmmpPath)
-						+ (IsSaveBackup ? ".tmp" : "")
-						+ Path.GetExtension(CurrentYmmpPath),
-			};
-			csfd.Filters
-				.Add(new CommonFileDialogFilter("YMM4プロジェクトファイル", "*.ymmp"));
-
-			try
-			{
-				if (csfd.ShowDialog() != CommonFileDialogResult.Ok)
+		SaveYmmp = Command.Factory.Create(
+			(Func<RoutedEventArgs, ValueTask>)(
+				async _ =>
 				{
+					if (CurrentYmmp is null)
+					{
+						Manager.Warn(
+							"YMM4プロジェクトが読み込まれていません",
+							"YMM4プロジェクトファイル(.ymmp)を最初に読み込んでください。"
+						);
+						return;
+					}
+
+					var sw = new System.Diagnostics.Stopwatch();
+					sw.Start();
+
+					var loading = Manager.Loading("保存中", "保存しています…");
+					loading.Message = "ボイスアイテムを解析中…";
+					var ymmp = await YmmpUtil.CopyDeepAsync(CurrentYmmp);
+					var voiceItems = await YmmpUtil.ParseVoiceItemsAsync(ymmp);
+
+					sw.Stop();
+					Debug.WriteLine($"TIME[ParseVoiceItemsAsync]:{sw.ElapsedMilliseconds}");
+					sw.Restart();
+
+					if (voiceItems is null)
+					{
+						Manager.Dismiss(loading);
+						Manager.Info(
+							"ボイスアイテムなし",
+							"対象のボイスアイテムがありませんでした。"
+						);
+						return;
+					}
+
+					//filter exportable
+					loading.Message = "出力対象のフィルタ…";
+					voiceItems = voiceItems
+						.Where(v =>
+						{
+							if (Characters.Any(c => c.Name == v.CharacterName))
+							{
+								return Characters.First(c => c.Name == v.CharacterName).IsExport;
+							}
+							else
+							{
+								return false;
+							}
+						})
+						.ToList();
+
+					var maxLayer = YmmpUtil.GetMaxLayer(ymmp);
+					Debug.WriteLine($"MaxLayer: {maxLayer}");
+
+					//カスタムボイス
+					//カスタムボイスは同じ場所の.labファイルを探して口パク生成
+					var resultCustom = await TryCreateCustomVoiceLipSyncAsync(
+						sw,
+						loading,
+						ymmp,
+						voiceItems,
+						maxLayer
+					);
+					if (!resultCustom)
+					{
+						return;
+					}
+
+					sw.Stop();
+					Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds}");
+					sw.Restart();
+
+					//APIボイス
+					var resultApi = await TryCreateApiVoiceLipSyncAsync(
+						loading,
+						ymmp,
+						voiceItems,
+						maxLayer
+					);
+					if (!resultApi)
+					{
+						return;
+					}
+
+					sw.Stop();
+					Debug.WriteLine($"TIME[FilterAPIVoiceAsync]:{sw.ElapsedMilliseconds}");
+
+					//出力
+					loading.Message = "ファイル保存中…";
+					var dir = Directory.Exists(CurrentYmmpPath)
+						? Path.GetDirectoryName(CurrentYmmpPath)!
+						: AppDomain.CurrentDomain.BaseDirectory;
+					using var csfd = new CommonSaveFileDialog()
+					{
+						Title = "保存するYMM4プロジェクトファイルを選択",
+						RestoreDirectory = true,
+						DefaultDirectory = dir,
+						DefaultFileName =
+							Path.GetFileNameWithoutExtension(CurrentYmmpPath)
+							+ (IsSaveBackup ? ".tmp" : "")
+							+ Path.GetExtension(CurrentYmmpPath),
+					};
+					csfd.Filters.Add(
+						new CommonFileDialogFilter("YMM4プロジェクトファイル", "*.ymmp")
+					);
+
+					try
+					{
+						if (csfd.ShowDialog() != CommonFileDialogResult.Ok)
+						{
+							Manager.Dismiss(loading);
+							return;
+						}
+					}
+					catch (System.Exception e)
+					{
+						//Manager.Warn(e.Message, e.StackTrace ?? "no stack");
+						logger.Info(dir);
+						logger.Error(e);
+						return;
+					}
+
+					sw.Restart();
+					await YmmpUtil.SaveAsync(ymmp, csfd.FileName);
+
 					Manager.Dismiss(loading);
-					return;
+					Manager.Info("保存成功", "保存しました", true);
+
+					sw.Stop();
+					Debug.WriteLine($"TIME[SaveAsync]:{sw.ElapsedMilliseconds}");
+
+					if (IsOpenWithSave)
+					{
+						await OpenAsync(csfd.FileName);
+					}
 				}
-			}
-			catch (System.Exception e)
-			{
-				//Manager.Warn(e.Message, e.StackTrace ?? "no stack");
-				logger.Info(dir);
-				logger.Error(e);
-				return;
-			}
-
-			sw.Restart();
-			await YmmpUtil.SaveAsync(ymmp, csfd.FileName);
-
-			Manager.Dismiss(loading);
-			Manager.Info("保存成功", "保存しました", true);
-
-			sw.Stop();
-			Debug.WriteLine($"TIME[SaveAsync]:{sw.ElapsedMilliseconds}");
-
-			if(IsOpenWithSave){
-				await OpenAsync(csfd.FileName);
-			}
-		}));
+			)
+		);
 
 		//open license folder
 		OpenLicenses = Command.Factory.Create<RoutedEventArgs>(async _ =>
 		{
-			var path = Path.Combine(
-				AppDomain.CurrentDomain.BaseDirectory,
-				@"Licenses\"
-			);
+			var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Licenses\");
 			await OpenAsync(path);
 		});
 
-		OpenWebsite = Command.Factory.Create<RoutedEventArgs>(async _
-			=> await OpenAsync("https://github.com/InuInu2022/KuchiPaku"));
+		OpenWebsite = Command.Factory.Create<RoutedEventArgs>(async _ =>
+			await OpenAsync("https://github.com/InuInu2022/KuchiPaku")
+		);
 
-		OpenYMM4Website = Command.Factory.Create<RoutedEventArgs>(async _
-			=> await OpenAsync("https://manjubox.net/ymm4/"));
+		OpenYMM4Website = Command.Factory.Create<RoutedEventArgs>(async _ =>
+			await OpenAsync("https://manjubox.net/ymm4/")
+		);
 	}
 
-	private static async ValueTask OpenAsync(string path){
+	/// <summary>
+	/// カスタムボイスの口パク作成
+	/// </summary>
+	/// <param name="sw"></param>
+	/// <param name="loading"></param>
+	/// <param name="ymmp"></param>
+	/// <param name="voiceItems"></param>
+	/// <param name="maxLayer"></param>
+	/// <returns></returns>
+	private async ValueTask<bool> TryCreateCustomVoiceLipSyncAsync(
+		Stopwatch sw,
+		INotificationMessage loading,
+		JObject ymmp,
+		List<YmmVoiceItem> voiceItems,
+		int maxLayer
+	)
+	{
+		loading.Message = "カスタムボイスの口パク生成中…";
+		var customVoices = await YmmpUtil.FilterCustomVoiceAsync(voiceItems);
+
+		sw.Stop();
+		Debug.WriteLine($"TIME[FilterCustomVoiceAsync]:{sw.ElapsedMilliseconds}");
+		sw.Restart();
+
+		var name = SelectedCharaItem?.Name ?? "";
+
+		try
+		{
+			YmmpUtil.MakeCustomVoiceFaceItem(
+				maxLayer,
+				customVoices.ToList(),
+				ymmp,
+				LipSyncSettings,
+				CurrentYmmpFPS
+			);
+		}
+		catch (System.Exception e)
+		{
+			logger.Error(e);
+			Manager.Dismiss(loading);
+			return false;
+		}
+		return true;
+	}
+
+	/// <summary>
+	/// APIボイスの口パク作成
+	/// </summary>
+	/// <param name="loading"></param>
+	/// <param name="ymmp"></param>
+	/// <param name="voiceItems"></param>
+	/// <param name="maxLayer"></param>
+	/// <returns></returns>
+	private async ValueTask<bool> TryCreateApiVoiceLipSyncAsync(
+		INotificationMessage loading,
+		JObject ymmp,
+		List<YmmVoiceItem> voiceItems,
+		int maxLayer
+	)
+	{
+		loading.Message = "APIボイスの口パク生成中…";
+		var apiVoices = await YmmpUtil.FilterAPIVoiceAsync(voiceItems);
+
+		//APIボイスの口パク生成
+		Debug.WriteLine(nameof(YmmpUtil.MakeAPIVoiceFaceItemAsync));
+		try
+		{
+			await YmmpUtil.MakeAPIVoiceFaceItemAsync(
+				maxLayer,
+				apiVoices,
+				ymmp,
+				LipSyncSettings,
+				CurrentYmmpFPS
+			);
+		}
+		catch (System.Exception e)
+		{
+			Debug.WriteLine($"ERROR:{e.Message}");
+			logger.Error(e);
+			Manager.Dismiss(loading);
+			return false;
+		}
+		return true;
+	}
+
+	private static async ValueTask OpenAsync(string path)
+	{
 		await Task.Run(() =>
 		{
-			var info = new ProcessStartInfo()
-			{
-				FileName = path,
-				UseShellExecute = true
-			};
+			var info = new ProcessStartInfo() { FileName = path, UseShellExecute = true };
 			Process.Start(info);
 		});
 	}
 
 	[PropertyChanged(nameof(SelectedCharaItem))]
-	private async ValueTask SelectedCharaItemChangedAsync(CharacterListViewModel item){
-		if(item is null){return;}
+	private async ValueTask SelectedCharaItemChangedAsync(CharacterListViewModel item)
+	{
+		if (item is null)
+		{
+			return;
+		}
 
 		var sw = new System.Diagnostics.Stopwatch();
 		sw.Start();
@@ -343,27 +405,23 @@ public sealed class MainWindowViewModel
 		if (path is null || !Directory.Exists(path))
 		{
 			//パスが無いのをユーザー通知
-			Manager
-				.Warn(
-					"ファイルのあるはずのフォルダがみつかりません",
-					"キャラの立ち絵の指定されたフォルダがありません。ファイルを丸ごと移動していませんか？"
-				);
+			Manager.Warn(
+				"ファイルのあるはずのフォルダがみつかりません",
+				"キャラの立ち絵の指定されたフォルダがありません。ファイルを丸ごと移動していませんか？"
+			);
 			return;
 		}
 
-		var kuchiDir = await Task.Run(()
-			=> Directory.GetDirectories(path, "口").FirstOrDefault());
+		var kuchiDir = await Task.Run(() => Directory.GetDirectories(path, "口").FirstOrDefault());
 
-		if(kuchiDir is null)
+		if (kuchiDir is null)
 		{
-			Manager
-				.Warn(
-					"「口」フォルダがありません",
-					"口パクさせるために、「口」フォルダに画像が置いてある必要があります。"
-				);
+			Manager.Warn(
+				"「口」フォルダがありません",
+				"口パクさせるために、「口」フォルダに画像が置いてある必要があります。"
+			);
 			return;
 		}
-
 
 		/*
 		var files = Directory
@@ -371,30 +429,25 @@ public sealed class MainWindowViewModel
 			.Select(s => Path.GetExtension(s));
 		*/
 		sw.Stop();
-		Debug.WriteLine($"TIME[get dir kuchi]:{sw.ElapsedMilliseconds.ToString()}");
+		Debug.WriteLine($"TIME[get dir kuchi]:{sw.ElapsedMilliseconds}");
 		sw.Restart();
 
-		var kuchiImages =
-			Directory
-				.GetFiles(kuchiDir)
-				.Where(s => extensionTexts.Contains(Path.GetExtension(s)))
-				.Select(s => new LipSyncImageLineViewModel(
-					Path.GetFileNameWithoutExtension(s),
-					s
-				));
+		var kuchiImages = Directory
+			.GetFiles(kuchiDir)
+			.Where(s => ExtensionTexts.Contains(Path.GetExtension(s)))
+			.Select(s => new LipSyncImageLineViewModel(Path.GetFileNameWithoutExtension(s), s));
 
 		var kList = new ObservableCollection<LipSyncImageLineViewModel>(kuchiImages);
 
 		sw.Stop();
-		Debug.WriteLine($"TIME[kuchi images]:{sw.ElapsedMilliseconds.ToString()}");
+		Debug.WriteLine($"TIME[kuchi images]:{sw.ElapsedMilliseconds}");
 		sw.Restart();
 
 		//Debug.WriteLine($"kuchiImages:{kuchiImages}");
 		//kList.Where(k => k.Path == )
 
 		var images = LipSyncSettings[chara!.Name!]
-			.MousePhenomeImagePair
-			.Select(v =>
+			.MousePhonemeImagePair.Select(v =>
 			{
 				var lineName = v.Key switch
 				{
@@ -404,12 +457,12 @@ public sealed class MainWindowViewModel
 					"e" => "え行",
 					"o" => "お行",
 					"N" => "ん",
-					_ => "ERROR"
+					_ => "ERROR",
 				};
 				var p = Path.Combine(kuchiDir, Path.GetFileName(v.Value));
-				var kuchi
-					= kList.First(k => k.Path == p)
-						?? kList.FirstOrDefault(k => k.Path == chara.DefaultMouthImgPath);
+				var kuchi =
+					kList.First(k => k.Path == p)
+					?? kList.FirstOrDefault(k => k.Path == chara.DefaultMouthImgPath);
 				var index = (kuchi is null) ? 0 : kList.IndexOf(kuchi);
 				return new LipSyncImageViewModel(
 					v.Key,
@@ -421,21 +474,19 @@ public sealed class MainWindowViewModel
 					index
 				);
 			})
-			.ToList()
-			;
+			.ToList();
 		LipSyncImages = [.. images];
 
 		sw.Stop();
-		Debug.WriteLine($"TIME[rip sync images]:{sw.ElapsedMilliseconds.ToString()}");
+		Debug.WriteLine($"TIME[rip sync images]:{sw.ElapsedMilliseconds}");
 	}
 
 	[PropertyChanged(nameof(CurrentConsonantOption))]
-	private async ValueTask CurrentConsonantOptionChangedAsync(ConsonantOption opt){
+	private async ValueTask CurrentConsonantOptionChangedAsync(ConsonantOption opt)
+	{
 		await Application.Current.Dispatcher.InvokeAsync(() =>
 		{
-			LipSyncSettings
-				.AsParallel()
-				.ForAll(s => s.Value.ConsonantOption = opt);
+			LipSyncSettings.AsParallel().ForAll(s => s.Value.ConsonantOption = opt);
 		});
 	}
 }
