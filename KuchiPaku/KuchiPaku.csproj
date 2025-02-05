@@ -10,6 +10,8 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>
     <DebugType>portable</DebugType>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-Minimum</AnalysisLevel>
     <DebugSymbols Condition="'$(Configuration)' == 'Release'">false</DebugSymbols>
     <DebugType Condition="'$(Configuration)' == 'Release'">embedded</DebugType>
     <DebugType Condition="'$(Configuration)' == 'Debug'">embedded</DebugType>
