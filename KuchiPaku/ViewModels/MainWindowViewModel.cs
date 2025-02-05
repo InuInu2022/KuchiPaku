@@ -1,12 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////
-//
-// Epoxy template source code.
-// Write your own copyright and note.
-// (You can use https://github.com/rubicon-oss/LicenseHeaderManager)
-//
-////////////////////////////////////////////////////////////////////////////
-
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
@@ -65,18 +57,19 @@ public sealed class MainWindowViewModel
 
 	private int CurrentYmmpFPS { get; set; } = 30;
 
-	public Dictionary<string, LipSyncOption> LipSyncSettings { get; set; } = new();
+	public Dictionary<string, LipSyncOption> LipSyncSettings { get; set; } = [];
 
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private string? DebuggerDisplay => ToString();
+	private static readonly string[] extensionTexts = new string[] { ".png",".gif",",webp"};
 
 	public MainWindowViewModel()
 	{
 		WindowTitle = AppUtil.GetWindowTitle();
 		Manager = new NotificationMessageManager();
-		Characters = new ObservableCollection<CharacterListViewModel>();
-		LipSyncImages = new ObservableCollection<LipSyncImageViewModel>();
-		LipSyncSettings = new();
+		Characters = [];
+		LipSyncImages = [];
+		LipSyncSettings = [];
 
 		KuchiPaku.Core.Models.ConfigUtil.LoadConfig();
 		var settings = KuchiPaku.Core.Models.ConfigUtil.Settings;
@@ -141,7 +134,7 @@ public sealed class MainWindowViewModel
 				});
 
 			Characters.Clear();
-			Characters = new ObservableCollection<CharacterListViewModel>(viewList);
+			Characters = [.. viewList];
 		});
 
 		SaveYmmp = Command.Factory.Create((Func<RoutedEventArgs, ValueTask>)(async _ =>
@@ -232,8 +225,6 @@ public sealed class MainWindowViewModel
 
 			//APIボイスの口パク生成
 			Debug.WriteLine(nameof(YmmpUtil.MakeAPIVoiceFaceItemAsync));
-			//apiVoices.Select(v => v.)
-			//await Core.Models.TTSUtil.AwakeTTSAsync(Core.Models.TTSProduct.CeVIO_AI);
 			try
 			{
 				await YmmpUtil.MakeAPIVoiceFaceItemAsync(
@@ -252,7 +243,7 @@ public sealed class MainWindowViewModel
 			}
 
 			sw.Stop();
-			Debug.WriteLine($"TIME[FilterAPIVoiceAync]:{sw.ElapsedMilliseconds}");
+			Debug.WriteLine($"TIME[FilterAPIVoiceAsync]:{sw.ElapsedMilliseconds}");
 
 			//出力
 			loading.Message = "ファイル保存中…";
@@ -331,77 +322,6 @@ public sealed class MainWindowViewModel
 		});
 	}
 
-	/*
-	public void MakeCustomVoiceFaceItem(
-		int maxLayer,
-		IEnumerable<YmmVoiceItem> customVoices,
-		JObject ymmp,
-		Dictionary<string, LipSyncOption> lipSyncSettings,
-		int currentYmmpFPS
-	)
-	{
-		var sw = new System.Diagnostics.Stopwatch();
-		sw.Start();
-
-		var filterd = customVoices
-			.AsParallel()
-			.Where(v => v is not null)
-			.Select(v =>
-			{
-				var labPath = Path.ChangeExtension(v!.Hatsuon, "lab");
-
-				Debug.WriteLine($"lab: {labPath}:{File.Exists(labPath)}");
-
-				v.HasLabFile = File.Exists(labPath);
-
-				return v;
-			})
-			.Where(v => v.HasLabFile)
-			.ToList();
-
-		filterd
-			.ForEach(async v =>
-			{
-				var f = new FileInfo(Path.ChangeExtension(v!.Hatsuon, "lab")!);
-				var lab = await LabUtil
-					.MakeLabAsync(f, currentYmmpFPS);
-
-				await lab.ChangeLengthByRateAsync(v.PlaybackRate);
-				var items = (JArray)ymmp!["Timeline"]!["Items"]!;
-				var tachie = new JObject();
-				try
-				{
-					tachie = await YmmpUtil.ReadTachieTemplateAsync();
-				}
-				catch (System.Exception e)
-				{
-					throw new Exception(e.Message);
-				}
-
-				var set = lipSyncSettings!;
-
-				var contentOffset = YmmpUtil
-					.CulcContentOffset(
-						v.ContentOffset.TotalMilliseconds,
-						currentYmmpFPS
-					);
-
-				await YmmpUtil.MakeRipSyncItemAsync(
-					lab,
-					items,
-					tachie,
-					set[v!.CharacterName!]!,
-					maxLayer + 1,
-					v.Frame - contentOffset
-				);
-			})
-			;
-
-		sw.Stop();
-		Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds}");
-	}
-	*/
-
 	[PropertyChanged(nameof(SelectedCharaItem))]
 	private async ValueTask SelectedCharaItemChangedAsync(CharacterListViewModel item){
 		if(item is null){return;}
@@ -415,7 +335,7 @@ public sealed class MainWindowViewModel
 		//TODO:設定リストから読み出す
 		//クチパク設定Viewに設定
 
-		(LipSyncImages ??= new ObservableCollection<LipSyncImageViewModel>()).Clear();
+		(LipSyncImages ??= []).Clear();
 
 		//TODO:将来的にルール設定から追加するようにする
 
@@ -444,7 +364,6 @@ public sealed class MainWindowViewModel
 			return;
 		}
 
-		string[] EXTS = { ".png",".gif",",webp"};
 
 		/*
 		var files = Directory
@@ -458,7 +377,7 @@ public sealed class MainWindowViewModel
 		var kuchiImages =
 			Directory
 				.GetFiles(kuchiDir)
-				.Where(s => EXTS.Contains(Path.GetExtension(s)))
+				.Where(s => extensionTexts.Contains(Path.GetExtension(s)))
 				.Select(s => new LipSyncImageLineViewModel(
 					Path.GetFileNameWithoutExtension(s),
 					s
@@ -504,31 +423,10 @@ public sealed class MainWindowViewModel
 			})
 			.ToList()
 			;
-		LipSyncImages = new(images);
+		LipSyncImages = [.. images];
 
 		sw.Stop();
 		Debug.WriteLine($"TIME[rip sync images]:{sw.ElapsedMilliseconds.ToString()}");
-		//sw.Restart();
-
-		/*
-		LipSyncImageViewModel[] lipSyncSets =
-		{
-			new("a","あ行",kList,chara.DirectoryPath!,chara.Name!,this),
-			new("i","い行",kList,chara.DirectoryPath!,chara.Name!,this),
-			new("u","う行",kList,chara.DirectoryPath!,chara.Name!,this),
-			new("e","え行",kList,chara.DirectoryPath!,chara.Name!,this),
-			new("o","お行",kList,chara.DirectoryPath!,chara.Name!,this),
-			new("N","ん",kList,chara.DirectoryPath!,chara.Name!,this)
-		};
-
-		Array
-			.ForEach(
-				lipSyncSets,
-				a => LipSyncImages.Add(a)
-			);
-		*/
-
-
 	}
 
 	[PropertyChanged(nameof(CurrentConsonantOption))]
