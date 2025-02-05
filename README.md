@@ -78,7 +78,7 @@ CeVIOを普通とは違う所にインストールしてる場合は、下の例
 
 **KuchiPaku**は一部の音声合成ソフトがサポートする「**タイミング情報ファイル**」(`.lab`)を利用して口パクを生成します。`.lab`ファイルが用意できれば以下に記載がないソフトでも対応している可能性があります。
 
-- 公式に出力サポートしているソフト (officialy supported tools)
+- 公式に出力サポートしているソフト (officially supported tools)
   - 読み上げソフト (TTS tools)
     - [CeVIO Creative Studio](https://cevio.jp/product/ccs/)
     - [CeVIO AI](https://cevio.jp/)
@@ -122,7 +122,7 @@ CeVIOを普通とは違う所にインストールしてる場合は、下の例
 
 > The MIT License
 >
-> Copyright (c) 2022 InuInu
+> Copyright (c) 2022 - InuInu
 
 - [LICENSE.txt](LICENSE.txt)
 
