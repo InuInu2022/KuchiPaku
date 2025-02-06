@@ -33,37 +33,37 @@ public static partial class YmmpUtil
 		await Task.Run(() => File.WriteAllText(savePath, outStr));
 	}
 
-	public static int GetFPS(JObject ymmp, int sceneIndex = 0)
+	public static IEnumerable<(int Scene, int Fps)> GetFPS(JObject ymmp)
 	{
 		var tl = GetYmmpTimeline(ymmp);
-		if (tl is null)
-			return default;
+		if (tl is null) { return []; }
 
 		var fps = HasSceneTimelines(ymmp) switch
 		{
-			//TODO: シーンごとにFPSを取得するようにする
-			true => (int)tl[sceneIndex]!["VideoInfo"]!["FPS"]!,
-			_ => (int)tl["VideoInfo"]!["FPS"]!,
+			//シーンごとにFPSを取得するようにする
+			true => tl.Select((v, i) => (Scene: i, Fps: (int)v["VideoInfo"]!["FPS"]!)),
+			//旧形式
+			_ => [(0, (int)tl["VideoInfo"]!["FPS"]!)],
 		};
 
 		Debug.WriteLine($"Current FPS: {fps}");
 		return fps;
 	}
 
-	public static int GetMaxLayer(JObject ymmp, int sceneIndex = 0)
+	public static Dictionary<int, int>
+	GetMaxLayer(JObject ymmp)
 	{
 		var tl = GetYmmpTimeline(ymmp);
-		if (tl is null)
-			return 9999;
+		if (tl is null) { return new() { { 0, 9999 } }; }
 
-		var maxLayer = HasSceneTimelines(ymmp) switch
+		var maxLayers = HasSceneTimelines(ymmp) switch
 		{
-			//TODO: シーンごとにMaxLayerを取得するようにする
-			true => (int)tl[sceneIndex]!["MaxLayer"]!,
-			_ => (int)tl["MaxLayer"]!,
+			//シーンごとにMaxLayerを取得
+			true => tl.Select((v, i) => (Scene: i, MaxLayer: (int)v["MaxLayer"]!)),
+			_ => [(Scene:0, MaxLayer:(int)tl["MaxLayer"]!)],
 		};
 
-		return maxLayer;
+		return maxLayers.ToDictionary(x => x.Scene, x => x.MaxLayer);
 	}
 
 	public static async ValueTask<List<YmmCharacter>> ParseCharactersAsync(JObject ymmp)
@@ -80,76 +80,84 @@ public static partial class YmmpUtil
 		});
 	}
 
-	public static async ValueTask<List<YmmVoiceItem>> ParseVoiceItemsAsync(
-		JObject ymmp,
-		int sceneIndex = 0
+	public static async ValueTask<IEnumerable<(int Scene,YmmVoiceItem Item)>>
+	ParseVoiceItemsAsync(
+		JObject ymmp
 	)
 	{
 		var tl = GetYmmpTimeline(ymmp);
-		if (tl is null) return new([]);
+		if (tl is null) return [];
+		var items = GetVoiceItemsByScene(ymmp, tl);
 
-		var items = HasSceneTimelines(ymmp) switch
-		{
-			//TODO: シーンごとにボイスアイテムを処理する
-			true => (JArray)tl[sceneIndex]!["Items"]!,
-			_ => (JArray)tl["Items"]!,
-		};
-
-		return await Task.Run(() =>
-		{
-			return items
-				//.AsParallel()
-				.Where(v => v is not null && v["$type"]!.ToString() == YmmpItemType.VoiceItem)
-				.Select(v => YmmItemUtil.FromJson<YmmVoiceItem>(v.ToString()))
-				.Where(v => v is not null)
-				.OfType<YmmVoiceItem>()
-				.ToList();
-		});
+		return await Task.Run(() => items
+			.SelectMany(v => v.Value.Select((v2, i) => new KeyValuePair<int, JToken>(v.Key, v2)))
+			.Where(v => v.Value is not null && v.Value["$type"]!.ToString() == YmmpItemType.VoiceItem)
+			.Select(v => (v.Key, YmmItemUtil.FromJson<YmmVoiceItem>(v.Value.ToString())))
+			.Where(v => v.Item2 is not null)
+			.OfType<(int, YmmVoiceItem)>()
+		//.ToList()
+		);
 	}
 
-	public static async ValueTask<IEnumerable<YmmVoiceItem>> FilterCustomVoiceAsync(
-		IEnumerable<YmmVoiceItem?> voices
+	/// <summary>
+	/// シーンごとにボイスアイテムを処理する
+	/// </summary>
+	/// <param name="ymmp"></param>
+	/// <param name="tl"></param>
+	/// <returns></returns>
+	private static Dictionary<int, JArray>
+	GetVoiceItemsByScene(JObject ymmp, JToken tl)
+	{
+		Dictionary<int, JArray> items = HasSceneTimelines(ymmp) switch
+		{
+			//シーンごとにボイスアイテムを処理する
+			true => tl
+				.Select((v, i) => new KeyValuePair<int, JArray>(i, (JArray)v["Items"]! ?? []))
+				//.SelectMany(v => v.Value.Select((v2, i) => new KeyValuePair<int, JToken>(i, v2)))
+				.ToDictionary(v => v.Key, v => v.Value),
+			_ => new() { [0] = (JArray)tl["Items"]! },
+		};
+		return items;
+	}
+
+	public static async ValueTask<IEnumerable<(int Scene,YmmVoiceItem Item)>>
+	FilterCustomVoiceAsync(
+		IEnumerable<(int Scene, YmmVoiceItem Item)> voices
 	)
 	{
 		Regex regPat = new(@"^[A-Z].+\.[0-9a-zA-Z]{3,}$", RegexOptions.Compiled);
 		Regex regFilePat = new(@"^[A-Z]\:\\\\.*$", RegexOptions.Compiled);
 
-		return await Task.Run(() =>
-		{
-			return voices
-				//.AsParallel()
-				.Where(v => v is not null)
-				.OfType<YmmVoiceItem>()
-				.Where(v =>
-					v is not null
-					&& !string.IsNullOrEmpty(v.Hatsuon)
-					&& (regPat.IsMatch(v.Hatsuon) || regFilePat.IsMatch(v.Hatsuon))
-					&& File.Exists(v.Hatsuon)
-				)
-				.Select(v =>
-				{
-					v!.IsCustomVoice = true;
-					return v;
-				});
-		});
+		return await Task.Run(() => voices
+			.Where(v =>
+				v.Item is not null
+				&& !string.IsNullOrEmpty(v.Item.Hatsuon)
+				&& (regPat.IsMatch(v.Item.Hatsuon) || regFilePat.IsMatch(v.Item.Hatsuon))
+				&& File.Exists(v.Item.Hatsuon)
+			)
+			.Select(v =>
+			{
+				v.Item.IsCustomVoice = true;
+				return v;
+			})
+		);
 	}
 
-	public static async ValueTask<IEnumerable<YmmVoiceItem>> FilterAPIVoiceAsync(
-		IEnumerable<YmmVoiceItem?> voices
+	public static async ValueTask<IEnumerable<(int Scene, YmmVoiceItem Item)>>
+	FilterAPIVoiceAsync(
+		IEnumerable<(int Scene, YmmVoiceItem Item)> voices
 	)
 	{
-		return await Task.Run(
-			() =>
-				voices
-					.AsParallel()
-					.Where(v => v is not null)
-					.OfType<YmmVoiceItem>()
-					.Where(v =>
-						!v.IsCustomVoice
-						&& v.VoiceParameter is not null
-						&& v.TachieFaceParameter?.Type
-							!= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter, YukkuriMovieMaker.Plugin.Tachie.Psd"
-					)
+		return await Task.Run(() => voices
+			.AsParallel()
+			.Where(v => v.Item is not null)
+			.Where(v =>
+				!v.Item.IsCustomVoice
+				&& v.Item.VoiceParameter is not null
+				//TODO: support psd tachie
+				&& v.Item.TachieFaceParameter?.Type
+					!= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter, YukkuriMovieMaker.Plugin.Tachie.Psd"
+			)
 		);
 	}
 
@@ -182,12 +190,13 @@ public static partial class YmmpUtil
 	/// <param name="isLocked"></param>
 	public static async ValueTask MakeRipSyncItemAsync(
 		Lab lab,
-		JArray items,
+		Dictionary<int, JArray> items,
 		JObject tmpItem,
 		LipSyncOption lipSyncOption,
 		int insertLayer = 0,
 		int offsetFrame = 0,
-		bool isLocked = false
+		bool isLocked = false,
+		int sceneIndex = 0
 	)
 	{
 		if (lab is null || lab.Lines is null)
@@ -344,7 +353,8 @@ public static partial class YmmpUtil
 			newItem["Length"] = line.FrameLen;
 			newItem["IsLocked"] = isLocked;
 
-			items.Add(newItem);
+			JArray ja = items.ElementAtOrDefault(sceneIndex).Value;
+			ja.Add(newItem);
 		}
 	}
 
@@ -361,12 +371,11 @@ public static partial class YmmpUtil
 	}
 
 	public static void MakeCustomVoiceFaceItem(
-		int maxLayer,
-		IEnumerable<YmmVoiceItem> customVoices,
+		IDictionary<int, int>  maxLayer,
+		IEnumerable<(int Scene, YmmVoiceItem Item)> customVoices,
 		JObject ymmp,
 		Dictionary<string, LipSyncOption> lipSyncSettings,
-		int currentYmmpFPS,
-		int sceneIndex = 0
+		IEnumerable<(int Scene, int Fps)> currentYmmpFPS
 	)
 	{
 		var sw = new System.Diagnostics.Stopwatch();
@@ -375,41 +384,38 @@ public static partial class YmmpUtil
 		var tl = GetYmmpTimeline(ymmp);
 		if (tl is null) return;
 
-		var filterd = customVoices
+		var filtered = customVoices
 			.AsParallel()
-			.Where(v => v is not null)
+			.Where(v => v.Item is not null)
 			.Select(v =>
 			{
-				var labPath = Path.ChangeExtension(v!.Hatsuon, "lab");
+				var labPath = Path.ChangeExtension(v.Item.Hatsuon, "lab");
 
 				Debug.WriteLine($"lab: {labPath}:{File.Exists(labPath)}");
 
-				v.HasLabFile = File.Exists(labPath);
+				v.Item.HasLabFile = File.Exists(labPath);
 
 				return v;
 			})
-			.Where(v => v.HasLabFile)
+			.Where(v => v.Item.HasLabFile)
 			.ToList();
 
 
 
-		filterd.ForEach(async v =>
+		filtered.ForEach(async v =>
 		{
-			var f = new FileInfo(Path.ChangeExtension(v!.Hatsuon, "lab")!);
-			var lab = await LabUtil.MakeLabAsync(f, currentYmmpFPS);
+			var f = new FileInfo(Path.ChangeExtension(v.Item.Hatsuon, "lab")!);
+			int sceneFps = currentYmmpFPS.ElementAtOrDefault(v.Scene).Fps;
+			var lab = await LabUtil.MakeLabAsync(f, sceneFps);
 
-			await lab.ChangeLengthByRateAsync(v.PlaybackRate);
-			var items = HasSceneTimelines(ymmp) switch
-			{
-				true => (JArray)tl[sceneIndex]!["Items"]!,
-				_ => (JArray)tl!["Items"]!
-			};
+			await lab.ChangeLengthByRateAsync(v.Item.PlaybackRate);
+			var items = GetVoiceItemsByScene(ymmp, tl);
 
 			//(JArray)ymmp!["Timeline"]!["Items"]!;
 			var tachie = new JObject();
 			try
 			{
-				tachie = await YmmpUtil.ReadTachieTemplateAsync();
+				tachie = await ReadTachieTemplateAsync();
 			}
 			catch (System.Exception e)
 			{
@@ -418,58 +424,63 @@ public static partial class YmmpUtil
 
 			var set = lipSyncSettings!;
 
-			var contentOffset = YmmpUtil.CulcContentOffset(
-				v.ContentOffset.TotalMilliseconds,
-				currentYmmpFPS
+			var contentOffset = CulcContentOffset(
+				v.Item.ContentOffset.TotalMilliseconds,
+				sceneFps
 			);
 
-			await YmmpUtil.MakeRipSyncItemAsync(
+			await MakeRipSyncItemAsync(
 				lab,
 				items,
 				tachie,
-				set[v!.CharacterName!]!,
-				maxLayer + 1,
-				v.Frame - contentOffset
+				set[v.Item.CharacterName!]!,
+				maxLayer[v.Scene] + 1,
+				v.Item.Frame - contentOffset,
+				sceneIndex: v.Scene
 			);
+
+			maxLayer[v.Scene]++;
 		});
-		//*/
 
 		sw.Stop();
 		Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds}");
 	}
 
 	public static async ValueTask MakeAPIVoiceFaceItemAsync(
-		int maxLayer,
-		IEnumerable<YmmVoiceItem> voiceItems,
+		IDictionary<int, int> maxLayer,
+		IEnumerable<(int Scene, YmmVoiceItem Item)> voiceItems,
 		JObject ymmp,
 		Dictionary<string, LipSyncOption> lipSyncSettings,
-		int currentYmmpFPS,
-		int sceneIndex = 0
+		IEnumerable<(int Scene, int Fps)> currentYmmpFPS
 	)
 	{
-		var ymmChara = await YmmpUtil.ParseCharactersAsync(ymmp);
+		var ymmChara = await ParseCharactersAsync(ymmp);
 
 		var convItems = voiceItems
 			.AsParallel()
 			.Where(v =>
-				v is not null && !string.IsNullOrEmpty(v.Serif) && v.VoiceParameter is not null
+				v.Item is not null
+				&& !string.IsNullOrEmpty(v.Item.Serif)
+				&& v.Item.VoiceParameter is not null
 			)
-			.Select(v => (item: v, voice: ymmChara.First(c => c.Name == v.CharacterName).Voice))
+			.Select(v => (
+				item: v,
+				voice: ymmChara.First(c => c.Name == v.Item.CharacterName).Voice))
 			.Where(v => v.voice.Api != "commandline")
 			.Where(v =>
-				TTSTabel.YmmVoiceToProduct[v.voice.Api]
+				TTSTable.YmmVoiceToProduct[v.voice.Api]
 					is TTSProduct.CeVIO_AI
 						or TTSProduct.CeVIO_CS
 			) //TODO:support voicevox,sharevox
 			.ToList();
-		var moddedItems = new List<(YmmVoiceItem item, Voice voice)>();
+		var moddedItems = new List<((int Scene, YmmVoiceItem Item) item, Voice voice)>();
 		try
 		{
 			await Task.WhenAll(
 				convItems
 					.Select(v =>
 						TTSUtil
-							.AwakeTTSAsync(TTSTabel.YmmVoiceToProduct[v.voice.Api], true)
+							.AwakeTTSAsync(TTSTable.YmmVoiceToProduct[v.voice.Api], true)
 							.AsTask()
 					)
 					.ToArray()
@@ -478,13 +489,13 @@ public static partial class YmmpUtil
 
 			foreach (var (item, voice) in convItems)
 			{
-				item.LabLines = await TTSUtil.GetPhonemesAsync(
+				item.Item.LabLines = await TTSUtil.GetPhonemesAsync(
 					voice,
-					item.VoiceParameter!,
-					TTSTabel.YmmVoiceToProduct[voice.Api],
-					item.Serif ?? "",
-					currentYmmpFPS,
-					item.PlaybackRate
+					item.Item.VoiceParameter!,
+					TTSTable.YmmVoiceToProduct[voice.Api],
+					item.Item.Serif ?? "",
+					fps: currentYmmpFPS.ElementAtOrDefault(item.Scene).Fps,
+					item.Item.PlaybackRate
 				);
 			}
 
@@ -500,25 +511,18 @@ public static partial class YmmpUtil
 
 		Debug.WriteLine($"API voice num:{moddedItems.Count}");
 
-		//await Task.Run(() => {
 		//convItems
 		moddedItems.ForEach(async v =>
 		{
 			var tl = GetYmmpTimeline(ymmp);
 			if (tl is null) { return; }
 
-			var items = HasSceneTimelines(ymmp) switch
-			{
-				//TODO: シーンごとにボイスアイテムを処理する
-				true => (JArray)tl[sceneIndex]!["Items"]!,
-				_ => (JArray)tl["Items"]!,
-			};
+			var items = GetVoiceItemsByScene(ymmp, tl);
 
-			//var items = (JArray)tl["Items"]!;
 			var tachie = new JObject();
 			try
 			{
-				tachie = await YmmpUtil.ReadTachieTemplateAsync();
+				tachie = await ReadTachieTemplateAsync();
 			}
 			catch (System.Exception e)
 			{
@@ -526,25 +530,26 @@ public static partial class YmmpUtil
 			}
 
 			var set = lipSyncSettings!;
-			var contentOffset = YmmpUtil.CulcContentOffset(
-				v.item.ContentOffset.TotalMilliseconds,
-				currentYmmpFPS
+			var contentOffset = CulcContentOffset(
+				v.item.Item.ContentOffset.TotalMilliseconds,
+				currentYmmpFPS.ElementAtOrDefault(v.item.Scene).Fps
 			);
 			try
 			{
-				var lab = new Lab(v.item.LabLines!);
-				if (v.item.PlaybackRate is not 100.0)
+				var lab = new Lab(v.item.Item.LabLines!);
+				if (v.item.Item.PlaybackRate is not 100.0)
 				{
-					await lab.ChangeLengthByRateAsync(v.item.PlaybackRate);
+					await lab.ChangeLengthByRateAsync(v.item.Item.PlaybackRate);
 				}
 
-				await YmmpUtil.MakeRipSyncItemAsync(
+				await MakeRipSyncItemAsync(
 					lab,
 					items,
 					tachie,
-					set[v!.item.CharacterName!]!,
-					maxLayer + 1,
-					v.item.Frame - contentOffset
+					set[v!.item.Item.CharacterName!]!,
+					maxLayer[v.item.Scene] + 1,
+					v.item.Item.Frame - contentOffset,
+					sceneIndex: v.item.Scene
 				);
 			}
 			catch (System.Exception e)
@@ -552,10 +557,8 @@ public static partial class YmmpUtil
 				Debug.WriteLine($"e:{e.Message}");
 			}
 
-			maxLayer++;
+			maxLayer[v.item.Scene]++;
 		});
-
-		//});
 
 		//end tts server
 		await TTSUtil.StopTTSAsync(TTSProduct.CeVIO_AI);
@@ -563,7 +566,7 @@ public static partial class YmmpUtil
 	}
 
 	private static async ValueTask CheckTTSAwakedAsync(
-		List<(YmmVoiceItem item, Voice voice)> convItems
+		IEnumerable<((int Scene, YmmVoiceItem Item) item, Voice voice)> convItems
 	)
 	{
 		await Task.Delay(2000);
@@ -571,7 +574,7 @@ public static partial class YmmpUtil
 		var results = await Task.WhenAll(
 			convItems
 				.Select(v =>
-					TTSUtil.IsTTSAwakedAsync(TTSTabel.YmmVoiceToProduct[v.voice.Api]).AsTask()
+					TTSUtil.IsTTSAwakedAsync(TTSTable.YmmVoiceToProduct[v.voice.Api]).AsTask()
 				)
 				.ToArray()
 		);

@@ -55,6 +55,7 @@ public sealed class MainWindowViewModel
 	private string? CurrentYmmpPath { get; set; }
 
 	private int CurrentYmmpFPS { get; set; } = 30;
+	IEnumerable<(int Scene, int Fps)> CurrentYmmpSceneFps { get; set; } = [(0,30)];
 
 	public Dictionary<string, LipSyncOption> LipSyncSettings { get; set; } = [];
 
@@ -98,7 +99,7 @@ public sealed class MainWindowViewModel
 			CurrentYmmp = json;
 			CurrentYmmpPath = cofd.FileName;
 			var fps = YmmpUtil.GetFPS(CurrentYmmp);
-			CurrentYmmpFPS = fps;
+			CurrentYmmpSceneFps = fps;
 
 			var ymmChara = await YmmpUtil.ParseCharactersAsync(CurrentYmmp);
 			var viewList = ymmChara
@@ -168,19 +169,13 @@ public sealed class MainWindowViewModel
 
 					//filter exportable
 					loading.Message = "出力対象のフィルタ…";
-					voiceItems = voiceItems
+					var vItems = voiceItems
 						.Where(v =>
-						{
-							if (Characters.Any(c => c.Name == v.CharacterName))
-							{
-								return Characters.First(c => c.Name == v.CharacterName).IsExport;
-							}
-							else
-							{
-								return false;
-							}
-						})
-						.ToList();
+							Characters.Any(c => c.Name == v.Item.CharacterName)
+							&& Characters.First(c => c.Name == v.Item.CharacterName).IsExport
+						)
+						.ToList()
+						;
 
 					var maxLayer = YmmpUtil.GetMaxLayer(ymmp);
 					Debug.WriteLine($"MaxLayer: {maxLayer}");
@@ -191,7 +186,7 @@ public sealed class MainWindowViewModel
 						sw,
 						loading,
 						ymmp,
-						voiceItems,
+						vItems,
 						maxLayer
 					);
 					if (!resultCustom)
@@ -207,7 +202,7 @@ public sealed class MainWindowViewModel
 					var resultApi = await TryCreateApiVoiceLipSyncAsync(
 						loading,
 						ymmp,
-						voiceItems,
+						vItems,
 						maxLayer
 					);
 					if (!resultApi)
@@ -299,8 +294,8 @@ public sealed class MainWindowViewModel
 		Stopwatch sw,
 		INotificationMessage loading,
 		JObject ymmp,
-		List<YmmVoiceItem> voiceItems,
-		int maxLayer
+		IEnumerable<(int Scene, YmmVoiceItem Item)> voiceItems,
+		IDictionary<int, int> maxLayer
 	)
 	{
 		loading.Message = "カスタムボイスの口パク生成中…";
@@ -319,7 +314,7 @@ public sealed class MainWindowViewModel
 				customVoices.ToList(),
 				ymmp,
 				LipSyncSettings,
-				CurrentYmmpFPS
+				CurrentYmmpSceneFps
 			);
 		}
 		catch (System.Exception e)
@@ -342,8 +337,8 @@ public sealed class MainWindowViewModel
 	private async ValueTask<bool> TryCreateApiVoiceLipSyncAsync(
 		INotificationMessage loading,
 		JObject ymmp,
-		List<YmmVoiceItem> voiceItems,
-		int maxLayer
+		IEnumerable<(int Scene, YmmVoiceItem Item)> voiceItems,
+		IDictionary<int, int> maxLayer
 	)
 	{
 		loading.Message = "APIボイスの口パク生成中…";
@@ -358,7 +353,7 @@ public sealed class MainWindowViewModel
 				apiVoices,
 				ymmp,
 				LipSyncSettings,
-				CurrentYmmpFPS
+				CurrentYmmpSceneFps
 			);
 		}
 		catch (System.Exception e)

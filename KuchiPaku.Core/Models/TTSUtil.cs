@@ -75,15 +75,15 @@ public static class TTSUtil
 			var path = ConfigUtil
 				.Settings
 				.TalkSoftInterfaces
-				.First(v => TTSTabel.YmmVoiceToProduct[v.Type!] == tts)
+				.First(v => TTSTable.YmmVoiceToProduct[v.Type!] == tts)
 				.DllPath;
 			path = string.IsNullOrEmpty(path) ? "" : path;
 			return TTSmanagers.GetOrAdd(
 				tts,
 				new TTSManager(
 					tts,
-					TTSTabel.TTStoType.ContainsKey(tts)
-						? TTSTabel.TTStoType[tts]
+					TTSTable.TTStoType.ContainsKey(tts)
+						? TTSTable.TTStoType[tts]
 						: APIType.TypeOther,
 					path
 					));
@@ -295,7 +295,7 @@ class TTSManager : ITTSManager, IDisposable
 							$"P{i+1}",
 							BindingFlags.Instance | BindingFlags.Public
 						);
-					v.Value = Convert.ToUInt32(pInfo.GetValue(voiceParam) ?? 0);
+					v.Value = Convert.ToUInt32(pInfo?.GetValue(voiceParam) ?? 0);
 					newComps.Add(v);
 				}
 
@@ -381,7 +381,7 @@ interface ITTSManager{
 }
 
 //TODO:export to json
-record TTSTabel{
+record TTSTable{
 	public static Dictionary<TTSProduct, APIType> TTStoType = new()
 	{
 		{TTSProduct.CeVIO_AI, APIType.TypeCeVIO},
