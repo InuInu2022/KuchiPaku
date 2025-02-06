@@ -51,6 +51,8 @@
     <MakeDir Directories="$(OutputPath)/_publish/" />
     <Delete Files="$(OutputPath)/(AssemblyName).pdb" />
     <Delete Files="$(OutputPath)/publish/(AssemblyName).pdb" />
+    <Delete Files="$(OutputPath)/FluentCeVIOWrapper.Common.xml" />
+    <Delete Files="$(OutputPath)/publish/FluentCeVIOWrapper.Common.xml" />
     <ZipDirectory SourceDirectory="$(OutputPath)/publish/" DestinationFile="$(OutputPath)/_publish/$(AssemblyName)-v.$(Version).zip" Overwrite="true" />
     <Message Text="Actions After Publish" Importance="high" />
   </Target>
