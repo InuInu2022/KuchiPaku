@@ -60,7 +60,7 @@ public static partial class YmmpUtil
 		{
 			//シーンごとにMaxLayerを取得
 			true => tl.Select((v, i) => (Scene: i, MaxLayer: (int)v["MaxLayer"]!)),
-			_ => [(Scene:0, MaxLayer:(int)tl["MaxLayer"]!)],
+			_ => [(Scene: 0, MaxLayer: (int)tl["MaxLayer"]!)],
 		};
 
 		return maxLayers.ToDictionary(x => x.Scene, x => x.MaxLayer);
@@ -80,7 +80,7 @@ public static partial class YmmpUtil
 		});
 	}
 
-	public static async ValueTask<IEnumerable<(int Scene,YmmVoiceItem Item)>>
+	public static async ValueTask<IEnumerable<(int Scene, YmmVoiceItem Item)>>
 	ParseVoiceItemsAsync(
 		JObject ymmp
 	)
@@ -120,7 +120,7 @@ public static partial class YmmpUtil
 		return items;
 	}
 
-	public static async ValueTask<IEnumerable<(int Scene,YmmVoiceItem Item)>>
+	public static async ValueTask<IEnumerable<(int Scene, YmmVoiceItem Item)>>
 	FilterCustomVoiceAsync(
 		IEnumerable<(int Scene, YmmVoiceItem Item)> voices
 	)
@@ -196,7 +196,8 @@ public static partial class YmmpUtil
 		int insertLayer = 0,
 		int offsetFrame = 0,
 		bool isLocked = false,
-		int sceneIndex = 0
+		int sceneIndex = 0,
+		int visualLeadFrames = 0
 	)
 	{
 		if (lab is null || lab.Lines is null)
@@ -280,62 +281,62 @@ public static partial class YmmpUtil
 			switch (line.Phoneme)
 			{
 				case var p when VOWELS_A.Contains(p):
-				{
-					imageFileName = images["a"];
-					lastVowel = imageFileName;
-					break;
-				}
+					{
+						imageFileName = images["a"];
+						lastVowel = imageFileName;
+						break;
+					}
 
 				case var p when VOWELS_I.Contains(p):
-				{
-					imageFileName = images["i"];
-					lastVowel = imageFileName;
-					break;
-				}
+					{
+						imageFileName = images["i"];
+						lastVowel = imageFileName;
+						break;
+					}
 
 				case var p when VOWELS_U.Contains(p):
-				{
-					imageFileName = images["u"];
-					lastVowel = imageFileName;
-					break;
-				}
+					{
+						imageFileName = images["u"];
+						lastVowel = imageFileName;
+						break;
+					}
 
 				case var p when VOWELS_E.Contains(p):
-				{
-					imageFileName = images["e"];
-					lastVowel = imageFileName;
-					break;
-				}
+					{
+						imageFileName = images["e"];
+						lastVowel = imageFileName;
+						break;
+					}
 
 				case var p when VOWELS_O.Contains(p):
-				{
-					imageFileName = images["o"];
-					lastVowel = imageFileName;
-					break;
-				}
+					{
+						imageFileName = images["o"];
+						lastVowel = imageFileName;
+						break;
+					}
 
 				case var p when CLOSE_CONSONANT.Contains(p):
-				{
-					imageFileName = images["N"];
-					break;
-				}
+					{
+						imageFileName = images["N"];
+						break;
+					}
 
 				case var p when OPEN_CONSONANT.Contains(p):
-				{
-					imageFileName = consoOpt switch
 					{
-						ConsonantOption.CONTINUE_BEFORE_VOWEL => lastVowel,
-						ConsonantOption.SMALL_MOUSE => images["u"], //TODO:代理処理
-						_ => images["N"],
-					};
-					break;
-				}
+						imageFileName = consoOpt switch
+						{
+							ConsonantOption.CONTINUE_BEFORE_VOWEL => lastVowel,
+							ConsonantOption.SMALL_MOUSE => images["u"], //TODO:代理処理
+							_ => images["N"],
+						};
+						break;
+					}
 
 				default:
-				{
-					imageFileName = images["N"];
-					break;
-				}
+					{
+						imageFileName = images["N"];
+						break;
+					}
 			}
 
 			var mouseImagePath = Path.Combine(lipSyncOption.MouseDir!, imageFileName);
@@ -349,7 +350,7 @@ public static partial class YmmpUtil
 			newItem["Layer"] = insertLayer;
 			newItem["CharacterName"] = lipSyncOption.CharacterName;
 			newItem["TachieFaceParameter"]!["Mouth"] = mouseImagePath;
-			newItem["Frame"] = line.FrameFrom + offsetFrame;
+			newItem["Frame"] = line.FrameFrom + offsetFrame - visualLeadFrames;
 			newItem["Length"] = line.FrameLen;
 			newItem["IsLocked"] = isLocked;
 
@@ -371,11 +372,12 @@ public static partial class YmmpUtil
 	}
 
 	public static void MakeCustomVoiceFaceItem(
-		IDictionary<int, int>  maxLayer,
+		IDictionary<int, int> maxLayer,
 		IEnumerable<(int Scene, YmmVoiceItem Item)> customVoices,
 		JObject ymmp,
 		Dictionary<string, LipSyncOption> lipSyncSettings,
-		IEnumerable<(int Scene, int Fps)> currentYmmpFPS
+		IEnumerable<(int Scene, int Fps)> currentYmmpFPS,
+		int visualLeadMs = 0
 	)
 	{
 		var sw = new System.Diagnostics.Stopwatch();
@@ -436,7 +438,8 @@ public static partial class YmmpUtil
 				set[v.Item.CharacterName!]!,
 				maxLayer[v.Scene] + 1,
 				v.Item.Frame - contentOffset,
-				sceneIndex: v.Scene
+				sceneIndex: v.Scene,
+				visualLeadFrames: CulcVisualLeadOffset(visualLeadMs, sceneFps)
 			);
 
 			maxLayer[v.Scene]++;
@@ -451,7 +454,8 @@ public static partial class YmmpUtil
 		IEnumerable<(int Scene, YmmVoiceItem Item)> voiceItems,
 		JObject ymmp,
 		Dictionary<string, LipSyncOption> lipSyncSettings,
-		IEnumerable<(int Scene, int Fps)> currentYmmpFPS
+		IEnumerable<(int Scene, int Fps)> currentYmmpFPS,
+		int visualLeadMs = 0
 	)
 	{
 		var ymmChara = await ParseCharactersAsync(ymmp);
@@ -549,7 +553,13 @@ public static partial class YmmpUtil
 					set[v!.item.Item.CharacterName!]!,
 					maxLayer[v.item.Scene] + 1,
 					v.item.Item.Frame - contentOffset,
-					sceneIndex: v.item.Scene
+					sceneIndex: v.item.Scene,
+					visualLeadFrames: CulcVisualLeadOffset(
+						visualLeadMs,
+						currentYmmpFPS
+							.ElementAtOrDefault(v.item.Scene)
+							.Fps
+					)
 				);
 			}
 			catch (System.Exception e)
@@ -609,5 +619,10 @@ public static partial class YmmpUtil
 			return oldTimeline;
 
 		return default;
+	}
+
+	static int CulcVisualLeadOffset(double ms, int fps)
+	{
+		return (int)Math.Round((ms / 1000.0) * fps);
 	}
 }

@@ -50,6 +50,9 @@ public sealed class MainWindowViewModel
 	public bool IsSaveBackup { get; set; } = true;
 	public bool IsOpenWithSave { get; set; } = true;
 
+	public int VisualLeadMs { get; set; } = 66;
+	public bool IsEnabledVisualLead { get; set; }
+
 	private JObject? CurrentYmmp { get; set; }
 
 	private string? CurrentYmmpPath { get; set; }
@@ -311,10 +314,11 @@ public sealed class MainWindowViewModel
 		{
 			YmmpUtil.MakeCustomVoiceFaceItem(
 				maxLayer,
-				customVoices.ToList(),
+				[.. customVoices],
 				ymmp,
 				LipSyncSettings,
-				CurrentYmmpSceneFps
+				CurrentYmmpSceneFps,
+				IsEnabledVisualLead ? VisualLeadMs : 0
 			);
 		}
 		catch (System.Exception e)
@@ -353,7 +357,8 @@ public sealed class MainWindowViewModel
 				apiVoices,
 				ymmp,
 				LipSyncSettings,
-				CurrentYmmpSceneFps
+				CurrentYmmpSceneFps,
+				visualLeadMs: IsEnabledVisualLead ? VisualLeadMs : 0
 			);
 		}
 		catch (System.Exception e)

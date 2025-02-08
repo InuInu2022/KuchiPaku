@@ -287,38 +287,56 @@
             </GroupBox>
           </ui:SimpleStackPanel>
 
+          <!--
           <GroupBox Header="挿入レイヤー設定">
             <ui:SimpleStackPanel></ui:SimpleStackPanel>
           </GroupBox>
+          -->
           <GroupBox Header="オプション">
             <ui:SimpleStackPanel>
-            <Expander x:Name="otherOptions"
-                      Header="そのほか"
-                      ExpandDirection="Down"
-                      IsExpanded="False"
-                      VerticalAlignment="Top"
-                      Margin="10,0,0,0">
-              <WrapPanel fw:PointerTracker.Enabled="True">
-                <Button x:Name="openLicense"
-                        Content="ライセンス"
-                        Margin="10"
-                        Padding="5"
-                        Style="{StaticResource ButtonRevealStyle}"
-                        Command="{Binding OpenLicenses}" />
-                <Button x:Name="openWebsite"
-                        Content="KuchiPaku公式サイト"
-                        Margin="10"
-                        Padding="5"
-                        Style="{StaticResource ButtonRevealStyle}"
-                        Command="{Binding OpenWebsite}" />
-                <Button x:Name="openYMM4Website"
-                        Content="YMM4公式サイト"
-                        Margin="10"
-                        Padding="5"
-                        Style="{StaticResource ButtonRevealStyle}"
-                        Command="{Binding OpenYMM4Website}" />
-              </WrapPanel>
-            </Expander>
+              <ui:SimpleStackPanel
+                Orientation="Horizontal"
+                VerticalAlignment="Center"
+                >
+                <CheckBox
+                  x:Name="MyCheckBox"
+                  Content="口パク先行させる"
+                  IsChecked="{Binding IsEnabledVisualLead, Mode=TwoWay}"
+                  Margin="3" />
+                <ui:NumberBox Header="映像先行 msec (66～100):"
+                  Value="{Binding VisualLeadMs}"
+                  Minimum="0"
+                  Maximum="200"
+                  IsEnabled="{Binding ElementName=MyCheckBox, Path=IsChecked}"
+                  />
+              </ui:SimpleStackPanel>
+              <Expander x:Name="otherOptions"
+                        Header="そのほか"
+                        ExpandDirection="Down"
+                        IsExpanded="False"
+                        VerticalAlignment="Top"
+                        Margin="10,0,0,0">
+                <WrapPanel fw:PointerTracker.Enabled="True">
+                  <Button x:Name="openLicense"
+                          Content="ライセンス"
+                          Margin="10"
+                          Padding="5"
+                          Style="{StaticResource ButtonRevealStyle}"
+                          Command="{Binding OpenLicenses}" />
+                  <Button x:Name="openWebsite"
+                          Content="KuchiPaku公式サイト"
+                          Margin="10"
+                          Padding="5"
+                          Style="{StaticResource ButtonRevealStyle}"
+                          Command="{Binding OpenWebsite}" />
+                  <Button x:Name="openYMM4Website"
+                          Content="YMM4公式サイト"
+                          Margin="10"
+                          Padding="5"
+                          Style="{StaticResource ButtonRevealStyle}"
+                          Command="{Binding OpenYMM4Website}" />
+                </WrapPanel>
+              </Expander>
             </ui:SimpleStackPanel>
           </GroupBox>
         </ui:SimpleStackPanel>
