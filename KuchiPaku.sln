@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FluentCeVIOWrapper", "Fluen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCeVIOWrapper.Common", "libs\FluentCeVIOWrapper\FluentCeVIOWrapper.Common\FluentCeVIOWrapper.Common.csproj", "{918DB9F0-9CEF-4282-9590-BAE0107EE80A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KuchiPaku.Psd", "KuchiPaku.Psd\KuchiPaku.Psd.csproj", "{BA9D435D-15F9-4857-B598-BC6EFCB23336}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{918DB9F0-9CEF-4282-9590-BAE0107EE80A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{918DB9F0-9CEF-4282-9590-BAE0107EE80A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{918DB9F0-9CEF-4282-9590-BAE0107EE80A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA9D435D-15F9-4857-B598-BC6EFCB23336}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA9D435D-15F9-4857-B598-BC6EFCB23336}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA9D435D-15F9-4857-B598-BC6EFCB23336}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA9D435D-15F9-4857-B598-BC6EFCB23336}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
