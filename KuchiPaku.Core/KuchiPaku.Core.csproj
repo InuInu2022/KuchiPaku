@@ -6,6 +6,7 @@
 		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
+        <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 	</PropertyGroup>
 	<ItemGroup>
 

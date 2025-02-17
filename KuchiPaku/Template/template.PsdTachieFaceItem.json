@@ -1,0 +1,42 @@
+{
+    "$type": "YukkuriMovieMaker.Project.Items.TachieFaceItem, YukkuriMovieMaker",
+    "CharacterName": "YourCharaNameHere",
+    "TachieFaceParameter": {
+        "$type": "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter, YukkuriMovieMaker.Plugin.Tachie.Psd",
+        "IsEnabled": true,
+        "FilePath": "path/to/psd",
+        "EnableLayers": [
+            "n82",
+            "n81",
+            "n76",
+            "n71",
+            "n69",
+            "n68",
+            "n45",
+            "n40",
+            "n28",
+            "n27",
+            "n22",
+            "n15",
+            "n12",
+            "n11",
+            "n1"
+        ],
+        "EyeAnimation": "Default",
+        "MouthAnimation": "Default"
+    },
+    "TachieFaceEffects": [],
+    "Group": 0,
+    "Frame": 0,
+    "Layer": 0,
+    "KeyFrames": {
+        "Frames": [],
+        "Count": 0
+    },
+    "Length": 0,
+    "PlaybackRate": 100.0,
+    "ContentOffset": "00:00:00",
+    "Remark": "",
+    "IsLocked": false,
+    "IsHidden": false
+}

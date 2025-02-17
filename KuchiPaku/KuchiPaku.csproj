@@ -15,6 +15,7 @@
     <DebugSymbols Condition="'$(Configuration)' == 'Release'">false</DebugSymbols>
     <DebugType Condition="'$(Configuration)' == 'Release'">embedded</DebugType>
     <DebugType Condition="'$(Configuration)' == 'Debug'">embedded</DebugType>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
     <!-- info -->
     <Product>KuchiPaku</Product>
     <Description>KuchiPaku - A YMM4 lip sync support tool</Description>

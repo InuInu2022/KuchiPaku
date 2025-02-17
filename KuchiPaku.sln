@@ -22,6 +22,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCeVIOWrapper.Common",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KuchiPaku.Psd", "KuchiPaku.Psd\KuchiPaku.Psd.csproj", "{BA9D435D-15F9-4857-B598-BC6EFCB23336}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{D16DD783-B2BF-44BD-84C7-B5C9BB9DE649}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PsdTest", "test\PsdTest\PsdTest.csproj", "{39EAB01D-8C9D-4859-9D28-F8FE18A3E758}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +48,10 @@ Global
 		{BA9D435D-15F9-4857-B598-BC6EFCB23336}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA9D435D-15F9-4857-B598-BC6EFCB23336}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA9D435D-15F9-4857-B598-BC6EFCB23336}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39EAB01D-8C9D-4859-9D28-F8FE18A3E758}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39EAB01D-8C9D-4859-9D28-F8FE18A3E758}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39EAB01D-8C9D-4859-9D28-F8FE18A3E758}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39EAB01D-8C9D-4859-9D28-F8FE18A3E758}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -54,5 +62,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C0575511-3034-44AF-A069-A3550FAE1A63} = {B5A67F54-3624-4983-91B4-F7C03B0E5A37}
 		{918DB9F0-9CEF-4282-9590-BAE0107EE80A} = {C0575511-3034-44AF-A069-A3550FAE1A63}
+		{39EAB01D-8C9D-4859-9D28-F8FE18A3E758} = {D16DD783-B2BF-44BD-84C7-B5C9BB9DE649}
 	EndGlobalSection
 EndGlobal
