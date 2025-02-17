@@ -239,7 +239,7 @@ _Pvt_Extensions
 
 # Others
 
-test/
+test/file
 
 local/*
 
