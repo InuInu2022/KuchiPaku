@@ -1,39 +1,32 @@
 ﻿using System.Diagnostics;
-using System.Globalization;
-
+using System.Diagnostics.CodeAnalysis;
 using PsdParser;
 using PsdParser.AdditionalLayerInformations;
-
 using static PsdParser.AdditionalLayerInformations.SectionDividerSetting;
-using System.Runtime.InteropServices;
-using System.Diagnostics.CodeAnalysis;
 
 namespace KuchiPaku.Psd;
 
 public static class PsdUtil
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
-	public static async ValueTask<PsdFile> LoadPsdAsync(
-		string path
-	)
+	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
+	public static async ValueTask<PsdFile> LoadPsdAsync(string path)
 	{
 		if (!Path.Exists(path))
 		{
 			throw new FileNotFoundException($"file: {path} is not found!");
 		}
 		var isPsd =
-			path.EndsWith(".psd", StringComparison.OrdinalIgnoreCase) ||
-			path.EndsWith(".psb", StringComparison.OrdinalIgnoreCase);
+			path.EndsWith(".psd", StringComparison.OrdinalIgnoreCase)
+			|| path.EndsWith(".psb", StringComparison.OrdinalIgnoreCase);
 		if (!isPsd)
 		{
 			throw new FileLoadException($"file is not psd: {path}");
 		}
 
-		var psd = await Task
-			.Run(() => new PsdFile(path))
-			.ConfigureAwait(false);
+		var psd = await Task.Run(() => new PsdFile(path)).ConfigureAwait(false);
 
-		Debug.WriteLine($"""
+		Debug.WriteLine(
+			$"""
 			------------------------------------
 			PSD file: {Path.GetFileName(path)}
 			w: {psd.Header.Width}, h: {psd.Header.Height}
@@ -41,16 +34,14 @@ public static class PsdUtil
 			channel: {psd.Header.Channels}
 			ver. {psd.Header.Version}
 			------------------------------------
-			""");
+			"""
+		);
 		return psd;
 	}
 
 	public static IReadOnlyList<YmmPsdLayer> ParsePsdLayers(PsdFile psd)
 	{
-		var layers = psd
-			.LayerAndMaskInformationSection
-			.LayerInfo
-			.Items;
+		var layers = psd.LayerAndMaskInformationSection.LayerInfo.Items;
 
 		var tree = ConvertToTree(layers);
 
@@ -71,26 +62,25 @@ public static class PsdUtil
 			var img = layer.Image;
 			bool isFolder = layer.IsFolderLike();
 			var head = (isFolder ? ParseFolderInfo(layer) : "");
-			Debug.WriteLine($"""
+			Debug.WriteLine(
+				$"""
 				{head} [n{i}] 「{layer.Record.LayerName}」 {img.Width} x {img.Height}
-				""");
+				"""
+			);
 		}
 
 		static string ParseFolderInfo(LayerRecordAndImage layer)
 		{
-			var info = layer
-				.Record
-				.AdditionalLayerInformations
-				.FirstOrDefault(v => v is SectionDividerSetting);
+			var info = layer.Record.AdditionalLayerInformations.FirstOrDefault(v =>
+				v is SectionDividerSetting
+			);
 			return info is not SectionDividerSetting sec
 				? ""
 				: sec.Type switch
 				{
 					LsctType.ClosedFolder => "💼",
-					LsctType.OpenedFolder =>
-					"📂",
-					LsctType.BoundingSectionDivider =>
-					"-",
+					LsctType.OpenedFolder => "📂",
+					LsctType.BoundingSectionDivider => "-",
 					_ => "other",
 				};
 		}
@@ -128,13 +118,12 @@ public static class PsdUtil
 		}
 	}
 
-
-
-	[SuppressMessage("Performance", "CA1859:可能な場合は具象型を使用してパフォーマンスを向上させる", Justification = "<保留中>")]
-	static IReadOnlyList<YmmPsdLayer>
-	ConvertToTree(
-		IEnumerable<LayerRecordAndImage> layers
-	)
+	[SuppressMessage(
+		"Performance",
+		"CA1859:可能な場合は具象型を使用してパフォーマンスを向上させる",
+		Justification = "<保留中>"
+	)]
+	static IReadOnlyList<YmmPsdLayer> ConvertToTree(IEnumerable<LayerRecordAndImage> layers)
 	{
 		List<YmmPsdLayer> rootNodes = [];
 		Stack<YmmPsdLayer> folderStack = new();
@@ -142,10 +131,7 @@ public static class PsdUtil
 		int index = layers.Count() - 1;
 		foreach (var layer in layers.Reverse())
 		{
-			var node = new YmmPsdLayer(
-				$"n{index--}",
-				layer
-			);
+			var node = new YmmPsdLayer($"n{index--}", layer);
 
 			if (node.IsFolder)
 			{
@@ -193,12 +179,9 @@ public static class PsdUtil
 		return rootNodes;
 	}
 
-
-
 	public static bool IsFolderLike(this LayerRecordAndImage layer)
 	{
-		return layer.Record
-			.AdditionalLayerInformations
+		return layer.Record.AdditionalLayerInformations
 			.OfType<SectionDividerSetting>()
 			.Any();
 	}
@@ -215,10 +198,14 @@ public static class PsdUtil
 
 	public static bool IsDivider(this LayerRecordAndImage layer)
 	{
-		if (!layer.IsFolderLike()) { return false; }
+		if (!layer.IsFolderLike())
+		{
+			return false;
+		}
 		var type = GetSectionLayerType(layer);
 		return type is LsctType.BoundingSectionDivider;
 	}
+
 	public static bool IsFolderOpened(this LayerRecordAndImage layer)
 	{
 		if (!layer.IsFolderLike())
@@ -231,8 +218,8 @@ public static class PsdUtil
 
 	static LsctType GetSectionLayerType(LayerRecordAndImage layer)
 	{
-		return layer.Record
-			.AdditionalLayerInformations
+		return layer
+			.Record.AdditionalLayerInformations
 			.OfType<SectionDividerSetting>()
 			.First()
 			.Type;
