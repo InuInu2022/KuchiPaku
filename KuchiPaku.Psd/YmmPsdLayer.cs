@@ -19,9 +19,13 @@ public record YmmPsdLayer(
 
 	public YmmPsdLayer? Parent { get; set; }
 	public IList<YmmPsdLayer> Children { get; set; } = [];
+	public bool IsVisible { get; set; }
+		= (Layer.Record.LayerFlags & LayerFlags.Visible) != LayerFlags.Visible;
 
 	public string Name => Layer.Record.LayerName;
 	public bool IsFolder => Layer.IsFolder();
 	public bool IsFolderOpened => Layer.IsFolderOpened();
 	public bool IsDivider => Layer.IsDivider();
+
+	public bool IsNormalLayer => !Layer.IsFolderLike();
 }

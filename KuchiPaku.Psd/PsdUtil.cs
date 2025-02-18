@@ -2,7 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 using PsdParser;
 using PsdParser.AdditionalLayerInformations;
+using System.Drawing;
+using System.Drawing.Imaging;
 using static PsdParser.AdditionalLayerInformations.SectionDividerSetting;
+using System.Runtime.InteropServices;
 
 namespace KuchiPaku.Psd;
 
@@ -50,6 +53,83 @@ public static class PsdUtil
 		//DebugPrintLayers(layers);
 
 		return tree;
+	}
+
+	public static Bitmap CreateImageFromTree(
+		IReadOnlyList<YmmPsdLayer> tree, int width, int height
+	)
+	{
+		var finalBitmap = new Bitmap(width, height);
+
+		// Graphics オブジェクトを作成
+		using (Graphics g = Graphics.FromImage(finalBitmap))
+		{
+			// 背景を透明に設定
+			g.Clear(System.Drawing.Color.Transparent);
+
+			// 入れ子になったレイヤーを走査して合成
+			CombineLayerRecursive(tree, g);
+		}
+
+		return finalBitmap;
+	}
+
+	static void CombineLayerRecursive(IEnumerable<YmmPsdLayer> layers, Graphics g)
+	{
+		foreach (var layer in layers.Reverse())
+		{
+			if (layer.IsFolder)
+			{
+				// フォルダの場合、再帰的にその中のレイヤーを走査
+				CombineLayerRecursive(layer.Children.Reverse(), g);
+			}
+			else if (layer.IsNormalLayer)
+			{
+				if (layer.Image.Width == 0 || layer.Image.Height == 0)
+				{
+					continue;
+				}
+
+				if (!layer.IsVisible)
+				{
+					continue;
+				}
+
+				// 通常レイヤーの場合、ビットマップを取得して合成
+					byte[] pixelData = layer.Image.Read(); // Pixelデータ取得
+				using var layerBitmap = CreateBitmapFromPixelData(
+					pixelData,
+					layer.Image.Width,
+					layer.Image.Height
+				);
+
+				//layer.Record.
+
+				// レイヤーのビットマップを合成（上書き）
+				g.DrawImage(layerBitmap, layer.Record.Left, layer.Record.Top);
+			}
+		}
+	}
+
+	static Bitmap CreateBitmapFromPixelData(byte[] pixelData, int width, int height)
+	{
+		var bitmap = new Bitmap(
+			width,
+			height,
+			PixelFormat.Format32bppArgb
+		);
+
+		// ピクセルデータをビットマップに設定
+		var rect = new System.Drawing.Rectangle(0, 0, width, height);
+		var data = bitmap.LockBits(
+			rect,
+			System.Drawing.Imaging.ImageLockMode.WriteOnly,
+			bitmap.PixelFormat
+		);
+		Marshal.Copy(pixelData, 0, data.Scan0, pixelData.Length);
+		bitmap.UnlockBits(data);
+
+		return bitmap;
 	}
 
 	[Conditional("DEBUG")]
