@@ -1,4 +1,7 @@
-﻿using KuchiPaku.Psd;
+﻿using System.Diagnostics;
+using System.Drawing.Imaging;
+
+using KuchiPaku.Psd;
 
 namespace PsdTest;
 
@@ -41,5 +44,25 @@ public class UnitTest1
 		{
 			Assert.Fail(e.Message);
 		}
+	}
+
+	[Theory]
+	[InlineData(
+		"D:\\videos\\MyVideo\\YMM4_Chara\\坂本アヒルさん_玉姫\\玉姫立ち絵素材\\玉姫立ち絵素材.psd"
+	)]
+	public async Task SaveAsync(string path)
+	{
+		using var psd = await PsdUtil.LoadPsdAsync(path);
+
+		var tree = PsdUtil.ParsePsdLayers(psd);
+
+		var bmp = PsdUtil.CreateImageFromTree(tree, psd.Header.Width, psd.Header.Height);
+
+		var savePath = Path.Combine(
+			Path.GetTempPath(),
+			Path.GetRandomFileName() + ".png"
+		);
+		bmp.Save(savePath, ImageFormat.Png);
+		Debug.WriteLine(savePath);
 	}
 }
