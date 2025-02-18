@@ -9,6 +9,8 @@ using System.Windows;
 using Enterwell.Clients.Wpf.Notifications;
 using Epoxy;
 using KuchiPaku.Models;
+using KuchiPaku.Psd;
+
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -34,7 +36,8 @@ public sealed class MainWindowViewModel
 
 	public CharacterListViewModel? SelectedCharaItem { get; set; }
 
-	public ObservableCollection<LipSyncImageViewModel>? LipSyncImages { get; set; }
+	public ObservableCollection<LipSyncImageViewModel>? LipSyncImages { get; set; } = [];
+	public ObservableCollection<LipSyncLayerViewModel>? LipSyncLayers { get; set; } = [];
 
 	public ConsonantOption CurrentConsonantOption { get; set; } =
 		ConsonantOption.CONTINUE_BEFORE_VOWEL;
@@ -53,11 +56,15 @@ public sealed class MainWindowViewModel
 	public int VisualLeadMs { get; set; } = 66;
 	public bool IsEnabledVisualLead { get; set; }
 
+	public bool IsShowPsdLayerSelector { get; set; }
+
 	private JObject? CurrentYmmp { get; set; }
 
 	private string? CurrentYmmpPath { get; set; }
 
 	private int CurrentYmmpFPS { get; set; } = 30;
+
+
 	IEnumerable<(int Scene, int Fps)> CurrentYmmpSceneFps { get; set; } = [(0,30)];
 
 	public Dictionary<string, LipSyncOption> LipSyncSettings { get; set; } = [];
@@ -72,6 +79,7 @@ public sealed class MainWindowViewModel
 		Manager = new NotificationMessageManager();
 		Characters = [];
 		LipSyncImages = [];
+		LipSyncLayers = [];
 		LipSyncSettings = [];
 
 		KuchiPaku.Core.Models.ConfigUtil.LoadConfig();
@@ -107,13 +115,22 @@ public sealed class MainWindowViewModel
 			var ymmChara = await YmmpUtil.ParseCharactersAsync(CurrentYmmp);
 			var viewList = ymmChara
 				.Where(v => v.TachieCharacterParameter is not null)
-				//TODO:support psd tachie
-				.Where(v => v.TachieType is not YmmpTachieType.PsdTachie)
+				.Where(v =>	v.TachieType
+					is YmmpTachieType.AnimationTachie
+					or YmmpTachieType.PsdTachie)
 				.Select(v => new CharacterListViewModel
 				{
 					Name = v.Name,
-					DirectoryPath = v.TachieCharacterParameter.Directory,
+					DirectoryPath = v.TachieType switch
+					{
+						YmmpTachieType.AnimationTachie
+							=> v.TachieCharacterParameter.Directory,
+						YmmpTachieType.PsdTachie
+							=> v.TachieCharacterParameter.FilePath,
+						_ => "",
+					},
 					DefaultMouthImgPath = v.TachieDefaultItemParameter.Mouth,
+					TachieType = v.TachieType,
 				});
 
 			LipSyncSettings.Clear();
@@ -388,12 +405,34 @@ public sealed class MainWindowViewModel
 			return;
 		}
 
-		var sw = new System.Diagnostics.Stopwatch();
-		sw.Start();
-
 		var chara = item;
 		Debug.WriteLine($"SelectedChara: {chara.Name}, isExport: {chara.IsExport}");
 
+		IsShowPsdLayerSelector = chara.TachieType == YmmpTachieType.PsdTachie;
+
+		if (chara.TachieType == YmmpTachieType.AnimationTachie)
+		{
+			//アニメーション立ち絵
+			var flowControl = await LoadLipSyncImagesAsync(chara);
+			if (!flowControl) { return; }
+		}
+		else if (chara.TachieType == YmmpTachieType.PsdTachie)
+		{
+			//TODO:psd
+
+			//psd版LipSyncImagesのリスト構築
+			var flowControl = await LoadLipSyncLayersAsync(chara);
+			if (!flowControl) return;
+
+			//psd layer selectorのツリー表示構築
+		}
+	}
+
+	async ValueTask<bool>
+	LoadLipSyncImagesAsync(CharacterListViewModel chara)
+	{
+		var sw = new System.Diagnostics.Stopwatch();
+		sw.Start();
 		//TODO:設定リストから読み出す
 		//クチパク設定Viewに設定
 
@@ -409,7 +448,7 @@ public sealed class MainWindowViewModel
 				"ファイルのあるはずのフォルダがみつかりません",
 				"キャラの立ち絵の指定されたフォルダがありません。ファイルを丸ごと移動していませんか？"
 			);
-			return;
+			return false;
 		}
 
 		var kuchiDir = await Task.Run(() => Directory.GetDirectories(path, "口").FirstOrDefault());
@@ -420,7 +459,7 @@ public sealed class MainWindowViewModel
 				"「口」フォルダがありません",
 				"口パクさせるために、「口」フォルダに画像が置いてある必要があります。"
 			);
-			return;
+			return false;
 		}
 
 		/*
@@ -479,6 +518,61 @@ public sealed class MainWindowViewModel
 
 		sw.Stop();
 		Debug.WriteLine($"TIME[rip sync images]:{sw.ElapsedMilliseconds}");
+		return true;
+	}
+
+	async ValueTask<bool>
+	LoadLipSyncLayersAsync(CharacterListViewModel chara)
+	{
+		(LipSyncLayers ??= []).Clear();
+
+		var path = chara.DirectoryPath;
+		if (path is null || !Path.Exists(path))
+		{
+			Manager.Warn(
+				"ファイルがみつかりません",
+				"PSD立ち絵のファイルがみつかりません。ファイルを丸ごと移動していませんか？"
+			);
+			return false;
+		}
+
+		var psd = await PsdUtil.LoadPsdAsync(path);
+		var tree = PsdUtil.ParsePsdLayers(psd);
+
+		var layers = LipSyncSettings[chara!.Name!]
+			.MousePhonemeImagePair.Select(v =>
+			{
+				var lineName = v.Key switch
+				{
+					"a" => "あ行",
+					"i" => "い行",
+					"u" => "う行",
+					"e" => "え行",
+					"o" => "お行",
+					"N" => "ん",
+					_ => "ERROR",
+				};
+				return new LipSyncLayerViewModel(
+					id: v.Key,
+					name: lineName,
+					mainVM: this,
+					layerTree: tree,
+					psdRect: new System.Drawing.Rectangle(
+						0,0,psd.Header.Width, psd.Header.Height)
+				)
+				;
+			})
+			.ToList();
+
+		LipSyncLayers = [..layers];
+
+		foreach (var layer in layers)
+		{
+			layer
+				.ShowLayer();
+		}
+
+		return true;
 	}
 
 	[PropertyChanged(nameof(CurrentConsonantOption))]

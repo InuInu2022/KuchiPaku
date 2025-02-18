@@ -85,11 +85,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
+    <PackageReference Include="CalcBinding" Version="2.5.2" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0" />
     <PackageReference Include="Epoxy.Wpf" Version="1.16.0" />
     <PackageReference Include="ModernWpfUI" Version="0.9.6" />
     <PackageReference Include="FluentWPF" Version="0.10.2" />
-    <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.2" />
     <PackageReference Include="MinVer" Version="4.3.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -101,5 +102,6 @@
   <ItemGroup>
     <ProjectReference Include="..\KuchiPaku.Core\KuchiPaku.Core.csproj" />
     <ProjectReference Include="..\libs\FluentCeVIOWrapper\FluentCeVIOWrapper.Common\FluentCeVIOWrapper.Common.csproj" />
+    <ProjectReference Include="..\KuchiPaku.Psd\KuchiPaku.Psd.csproj" />
   </ItemGroup>
 </Project>
