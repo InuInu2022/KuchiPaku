@@ -287,7 +287,7 @@
                   <!-- 口パクイメージ選択forPSD立ち絵 -->
                   <ListView
                     x:Name="LipSyncLayers"
-                    Width="300"
+                    Width="250"
                     MinHeight="100"
                     Background="{DynamicResource SystemChromeLowColorBrush}"
                     BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
@@ -304,11 +304,16 @@
                             Margin="5"
                             Text="{Binding Name}"
                             />
-                          <Image
-                            Width="100"
-                            Height="25"
-                            Source="{Binding ImageSrc}"
-                            />
+                          <Border
+                            Width="200"
+                            Height="35"
+                            BorderBrush="Gray" BorderThickness="1">
+                            <Image
+                              Width="200"
+                              Height="35"
+                              Source="{Binding ImageSrc}"
+                              />
+                          </Border>
                         </StackPanel>
                       </DataTemplate>
                     </ListView.ItemTemplate>
