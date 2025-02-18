@@ -16,6 +16,8 @@ public static class YmmpItemType
 
 public static class YmmpTachieType
 {
+	public const string AnimationTachie
+		= "YukkuriMovieMaker.Plugin.Tachie.AnimationTachie.AnimationTachiePlugin, YukkuriMovieMaker.Plugin.Tachie.AnimationTachie, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 	public const string PsdTachie
 		= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachiePlugin, YukkuriMovieMaker.Plugin.Tachie.Psd, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 }

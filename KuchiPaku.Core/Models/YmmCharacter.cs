@@ -45,6 +45,9 @@ public partial class TachieCharacterParameter
 	[JsonProperty("Directory")]
 	public string Directory { get; set; }
 
+	[JsonProperty("FilePath")]
+	public string FilePath { get; set; }
+
 	[JsonProperty("EyeBlinkStart")]
 	public long EyeBlinkStart { get; set; }
 
@@ -137,4 +140,3 @@ internal static class Converter
 			},
 	};
 }
-
