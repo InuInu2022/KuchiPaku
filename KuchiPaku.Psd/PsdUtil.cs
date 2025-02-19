@@ -11,6 +11,8 @@ namespace KuchiPaku.Psd;
 
 public static class PsdUtil
 {
+	static readonly SemaphoreSlim _lock = new(1, 1);
+
 	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
 	public static async ValueTask<PsdFile> LoadPsdAsync(string path)
 	{
@@ -74,6 +76,26 @@ public static class PsdUtil
 		return finalBitmap;
 	}
 
+	public static async Task<Bitmap> CreateImageFromLayerAsync(YmmPsdLayer layer)
+	{
+		///*
+		await _lock.WaitAsync().ConfigureAwait(false);
+		byte[] pixelData = [];
+		try
+		{
+			pixelData = await Task
+				.Run(() => layer.Image.Read()).ConfigureAwait(false);
+		}
+		finally
+		{
+			_lock.Release();
+		}
+		//*/
+		//var pixelData = layer.Image.Read();
+		return CreateBitmapFromPixelData(
+			pixelData, layer.Image.Width, layer.Image.Height);
+	}
+
 	static void CombineLayerRecursive(IEnumerable<YmmPsdLayer> layers, Graphics g)
 	{
 		foreach (var layer in layers.Reverse())
@@ -96,7 +118,7 @@ public static class PsdUtil
 				}
 
 				// 通常レイヤーの場合、ビットマップを取得して合成
-					byte[] pixelData = layer.Image.Read(); // Pixelデータ取得
+				byte[] pixelData = layer.Image.Read(); // Pixelデータ取得
 				using var layerBitmap = CreateBitmapFromPixelData(
 					pixelData,
 					layer.Image.Width,
