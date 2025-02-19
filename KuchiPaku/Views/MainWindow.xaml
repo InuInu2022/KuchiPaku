@@ -12,11 +12,12 @@
   x:Class="KuchiPaku.Views.MainWindow"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:c="clr-namespace:CalcBinding;assembly=CalcBinding"
   xmlns:controls="clr-namespace:Enterwell.Clients.Wpf.Notifications.Controls;assembly=Enterwell.Clients.Wpf.Notifications"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:epoxy="https://github.com/kekyo/Epoxy"
   xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
-  xmlns:c="clr-namespace:CalcBinding;assembly=CalcBinding"
+  xmlns:local="clr-namespace:KuchiPaku.Psd;assembly=KuchiPaku.Psd"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:ui="http://schemas.modernwpf.com/2019"
   xmlns:viewmodels="clr-namespace:KuchiPaku.ViewModels"
@@ -117,94 +118,99 @@
             </ui:AppBarElementContainer>
 
           </ui:CommandBar>
-          <TextBox
-            x:Name="targetYmmpFileName"
-            Width="Auto"
-            Margin="5"
-            ui:ControlHelper.PlaceholderText=".ymmpファイルを選択してください"
-            FontSize="12"
-            IsReadOnly="True"
-            Text="{Binding TargetYmmpFileName}"
-            />
-          <ui:SimpleStackPanel Orientation="Horizontal">
-            <!--  キャラ口パク設定  -->
-            <GroupBox>
-              <GroupBox.Header>
-                <ui:SimpleStackPanel Orientation="Horizontal">
-                  <ui:SymbolIcon Margin="5" Symbol="ContactInfo" />
-                  <TextBlock FontSize="20" Text="キャラ口パク設定" />
-                </ui:SimpleStackPanel>
-              </GroupBox.Header>
 
-              <ui:SimpleStackPanel Orientation="Horizontal">
-                <ui:SimpleStackPanel>
-                  <ListView
-                    x:Name="Character"
-                    Width="200"
-                    MinHeight="100"
-                    Background="{DynamicResource SystemChromeLowColorBrush}"
-                    BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
-                    ItemsSource="{Binding Characters}"
-                    SelectedItem="{Binding SelectedCharaItem}"
-                    >
-                    <ListView.ItemTemplate>
-                      <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                          <ToggleButton
-                            Width="20"
-                            Height="20"
-                            Margin="0"
-                            Padding="0"
-                            IsChecked="{Binding IsExport}"
-                            ToolTip="ボタンを押したキャラは出力されなくなります。"
-                            >
-                            <TextBlock
+          <ui:SimpleStackPanel Orientation="Horizontal">
+            <ui:SimpleStackPanel>
+              <TextBox
+                x:Name="targetYmmpFileName"
+                Width="Auto"
+                Margin="5"
+                ui:ControlHelper.PlaceholderText=".ymmpファイルを選択してください"
+                FontSize="12"
+                IsReadOnly="True"
+                Text="{Binding TargetYmmpFileName}"
+                />
+
+              <!--  キャラ口パク設定  -->
+              <GroupBox>
+                <GroupBox.Header>
+                  <ui:SimpleStackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Margin="5" Symbol="ContactInfo" />
+                    <TextBlock FontSize="20" Text="キャラ口パク設定" />
+                  </ui:SimpleStackPanel>
+                </GroupBox.Header>
+
+                <ui:SimpleStackPanel Orientation="Horizontal">
+                  <ui:SimpleStackPanel>
+                    <ListView
+                      x:Name="Character"
+                      Width="200"
+                      MinHeight="100"
+                      Background="{DynamicResource SystemChromeLowColorBrush}"
+                      BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
+                      ItemsSource="{Binding Characters}"
+                      SelectedItem="{Binding SelectedCharaItem}"
+                      >
+                      <ListView.ItemTemplate>
+                        <DataTemplate>
+                          <StackPanel Orientation="Horizontal">
+                            <ToggleButton
+                              Width="20"
+                              Height="20"
                               Margin="0"
                               Padding="0"
-                              FontSize="8"
-                              Text="✔"
-                              Visibility="{Binding IsExport, Converter={StaticResource BoolToVisible}}"
+                              IsChecked="{Binding IsExport}"
+                              ToolTip="ボタンを押したキャラは出力されなくなります。"
+                              >
+                              <TextBlock
+                                Margin="0"
+                                Padding="0"
+                                FontSize="8"
+                                Text="✔"
+                                Visibility="{Binding IsExport, Converter={StaticResource BoolToVisible}}"
+                                />
+                            </ToggleButton>
+                            <TextBlock
+                              Margin="5"
+                              VerticalAlignment="Center"
+                              IsEnabled="{Binding IsExport}"
+                              Text="{Binding Name}"
                               />
-                          </ToggleButton>
-                          <TextBlock
-                            Margin="5"
-                            VerticalAlignment="Center"
-                            IsEnabled="{Binding IsExport}"
-                            Text="{Binding Name}"
-                            />
-                          <TextBlock
-                            Margin="5"
-                            FontSize="8"
-                            VerticalAlignment="Bottom"
-                            Text="{Binding TacheTypeText}"
-                            Foreground="Gray"
-                            />
-                        </StackPanel>
-                      </DataTemplate>
-                    </ListView.ItemTemplate>
-                  </ListView>
-                  <Separator />
-                  <ui:SimpleStackPanel Orientation="Horizontal">
-                    <ComboBox
-                      x:Name="LipSyncSetting"
-                      Margin="5"
-                      IsEnabled="False"
-                      SelectedIndex="0"
-                      >
-                      <ComboBoxItem Content="口パク設定1" />
-                      <ComboBoxItem Content="口パク設定2" />
-                    </ComboBox>
-                    <ui:CommandBar DefaultLabelPosition="Right">
-                      <ui:AppBarButton
-                        Icon="Add"
+                            <TextBlock
+                              Margin="5"
+                              VerticalAlignment="Bottom"
+                              FontSize="8"
+                              Foreground="Gray"
+                              Text="{Binding TacheTypeText}"
+                              />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ListView.ItemTemplate>
+                    </ListView>
+                    <Separator />
+                    <ui:SimpleStackPanel Orientation="Horizontal">
+                      <ComboBox
+                        x:Name="LipSyncSetting"
+                        Margin="5"
                         IsEnabled="False"
-                        Label="Add"
-                        />
-                    </ui:CommandBar>
+                        SelectedIndex="0"
+                        >
+                        <ComboBoxItem Content="口パク設定1" />
+                        <ComboBoxItem Content="口パク設定2" />
+                      </ComboBox>
+                      <ui:CommandBar DefaultLabelPosition="Right">
+                        <ui:AppBarButton
+                          Icon="Add"
+                          IsEnabled="False"
+                          Label="Add"
+                          />
+                      </ui:CommandBar>
+                    </ui:SimpleStackPanel>
                   </ui:SimpleStackPanel>
                 </ui:SimpleStackPanel>
-              </ui:SimpleStackPanel>
-            </GroupBox>
+              </GroupBox>
+            </ui:SimpleStackPanel>
+
 
 
 
@@ -222,7 +228,7 @@
               <ui:SimpleStackPanel Orientation="Horizontal">
 
                 <!--  center  -->
-                <ui:SimpleStackPanel Margin="10,0,0,0">
+                <ui:SimpleStackPanel Name="centerPanel" Margin="10,0,0,0">
                   <ui:SimpleStackPanel IsEnabled="False" Orientation="Horizontal">
                     <Label Margin="5" Content="口パクルール" />
                     <ComboBox
@@ -235,7 +241,7 @@
                     </ComboBox>
                   </ui:SimpleStackPanel>
 
-                  <!-- 口パクイメージ選択forアニメ立ち絵 -->
+                  <!--  口パクイメージ選択forアニメ立ち絵  -->
                   <ListView
                     x:Name="LipSyncImage"
                     Width="300"
@@ -284,41 +290,65 @@
                     </ListView.ItemTemplate>
                   </ListView>
 
-                  <!-- 口パクイメージ選択forPSD立ち絵 -->
-                  <ListView
-                    x:Name="LipSyncLayers"
-                    Width="250"
-                    MinHeight="100"
-                    Background="{DynamicResource SystemChromeLowColorBrush}"
-                    BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
-                    BorderThickness="1"
-                    ItemsSource="{Binding LipSyncLayers}"
-                    Visibility="{c:Binding IsShowPsdLayerSelector}"
-                    >
+                  <!--  口パクイメージ選択forPSD立ち絵  -->
+                  <ui:SimpleStackPanel Orientation="Horizontal">
+                    <ListView
+                      x:Name="LipSyncLayers"
+                      Width="200"
+                      MinHeight="100"
+                      Background="{DynamicResource SystemChromeLowColorBrush}"
+                      BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
+                      BorderThickness="1"
+                      ItemsSource="{Binding LipSyncLayers}"
+                      SelectedItem="{Binding SelectedLayers}"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      Visibility="{c:Binding IsShowPsdLayerSelector}"
+                      >
 
-                    <ListView.ItemTemplate>
-                      <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                          <TextBlock
-                            MinWidth="50"
-                            Margin="5"
-                            Text="{Binding Name}"
-                            />
-                          <Border
-                            Width="200"
-                            Height="35"
-                            BorderBrush="Gray" BorderThickness="1">
-                            <Image
-                              Width="200"
-                              Height="35"
-                              Source="{Binding ImageSrc}"
+                      <ListView.ItemTemplate>
+                        <DataTemplate>
+                          <StackPanel Orientation="Horizontal">
+                            <TextBlock
+                              MinWidth="50"
+                              Margin="5"
+                              Text="{Binding Name}"
                               />
-                          </Border>
-                        </StackPanel>
-                      </DataTemplate>
-                    </ListView.ItemTemplate>
-                  </ListView>
-
+                            <Border
+                              Width="100"
+                              Height="35"
+                              BorderBrush="Gray"
+                              BorderThickness="1"
+                              >
+                              <Image
+                                Width="100"
+                                Height="35"
+                                epoxy:Fountain.Well="{Binding ThumbImageWell}"
+                                Source="{Binding ImageSrc}"
+                                />
+                            </Border>
+                          </StackPanel>
+                        </DataTemplate>
+                      </ListView.ItemTemplate>
+                    </ListView>
+                    <!-- preview -->
+                    <Border
+                      Name="previewPsd"
+                      Width="125"
+                      MinHeight="100"
+                      MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
+                      BorderBrush="Gray"
+                      BorderThickness="1"
+                      Visibility="{c:Binding IsShowPsdLayerSelector}"
+                      >
+                      <Image
+                        Width="{Binding ActualWidth, ElementName=previewPsd}"
+                        MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
+                        epoxy:Fountain.Well="{Binding ThumbImageWell}"
+                        Source="{Binding SelectedLayers.FullImageSrc}"
+                        Stretch="Uniform"
+                        />
+                    </Border>
+                  </ui:SimpleStackPanel>
 
                   <ui:SimpleStackPanel Orientation="Horizontal">
                     <Label Margin="5" Content="オプション" />
@@ -330,30 +360,52 @@
                 <!--  PSDレイヤー選択 for PSD立ち絵  -->
                 <TreeView
                   Name="PsdLayerSelector"
-                  Width="200"
+                  MinWidth="200"
                   MinHeight="100"
+                  MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
                   Background="{DynamicResource SystemChromeLowColorBrush}"
                   BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
                   BorderThickness="1"
                   IsEnabled="{Binding IsShowPsdLayerSelector}"
+                  ItemsSource="{Binding SelectedLayerTree}"
+                  VirtualizingStackPanel.IsVirtualizing="True"
                   >
                   <TreeView.Resources>
-                    <!--
-                    <HierarchicalDataTemplate
-                      DataType="{x:Type local:YmmPsdLayer}"
-                      ItemsSource="{Binding Children}">
+                    <HierarchicalDataTemplate DataType="{x:Type viewmodels:SelectedLayerViewModel}" ItemsSource="{Binding Children}">
                       <StackPanel Orientation="Horizontal">
-                        <CheckBox />
-                        <TextBlock Margin="0,0,5,0" Text="■" />
-                        <TextBlock Text="レイヤー名" />
+                        <CheckBox IsChecked="{Binding IsVisible}">
+                          <StackPanel Orientation="Horizontal">
+                            <Border
+                              Background="{DynamicResource SystemBaseMediumLowColorBrush}"
+                              Margin="3"
+                              >
+                              <Image
+                                Width="36"
+                                Height="28"
+                                epoxy:Fountain.Well="{Binding ThumbImageWell}"
+                                Source="{Binding Image}"
+                                Visibility="{c:Binding !IsFolder}"
+                                Stretch="Uniform"
+                                />
+                            </Border>
+                            <TextBlock
+                              Width="24"
+                              Height="24"
+                              Text="📁"
+                              Visibility="{c:Binding IsFolder}"
+                              TextAlignment="Center"
+                              />
+                            <TextBlock Margin="5,0,5,0" Text="{Binding Name}" />
+                          </StackPanel>
+                        </CheckBox>
                       </StackPanel>
                     </HierarchicalDataTemplate>
-                    -->
                   </TreeView.Resources>
 
 
 
                   <!--  sample view  -->
+                  <!--
                   <TreeView.ItemTemplate>
                       <DataTemplate>
                           <StackPanel Orientation="Horizontal">
@@ -375,8 +427,8 @@
                     <TreeViewItem Header="レイヤー2-2" />
                   </TreeViewItem>
                   <TreeViewItem Header="レイヤー3" />
+                  -->
                 </TreeView>
-
               </ui:SimpleStackPanel>
 
 

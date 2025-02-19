@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,6 +39,9 @@ public sealed class MainWindowViewModel
 
 	public ObservableCollection<LipSyncImageViewModel>? LipSyncImages { get; set; } = [];
 	public ObservableCollection<LipSyncLayerViewModel>? LipSyncLayers { get; set; } = [];
+
+	public LipSyncLayerViewModel? SelectedLayers { get; set; }
+	public ObservableCollection<SelectedLayerViewModel>? SelectedLayerTree { get; set; }
 
 	public ConsonantOption CurrentConsonantOption { get; set; } =
 		ConsonantOption.CONTINUE_BEFORE_VOWEL;
@@ -565,14 +569,20 @@ public sealed class MainWindowViewModel
 			.ToList();
 
 		LipSyncLayers = [..layers];
-
-		foreach (var layer in layers)
-		{
-			layer
-				.ShowLayer();
-		}
-
 		return true;
+	}
+
+	[PropertyChanged(nameof(SelectedLayers))]
+	[SuppressMessage("","IDE0051")]
+	private ValueTask SelectedLayersChangedAsync(LipSyncLayerViewModel value)
+	{
+		if (value is null) return default;
+		SelectedLayerTree = [
+			.. value
+				.LayerTree
+				.Select(v => new SelectedLayerViewModel(v))
+		];
+		return default;
 	}
 
 	[PropertyChanged(nameof(CurrentConsonantOption))]

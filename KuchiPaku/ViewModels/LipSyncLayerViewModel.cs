@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -5,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -15,47 +17,74 @@ using KuchiPaku.Psd;
 namespace KuchiPaku.ViewModels;
 
 [ViewModel]
-public class LipSyncLayerViewModel(
-	string id,
-	string name,
-	MainWindowViewModel mainVM,
-	IReadOnlyList<YmmPsdLayer> layerTree,
-	Rectangle psdRect
-)
+public class LipSyncLayerViewModel
 {
-	public string Id { get; init; } = id;
-	public string? Name { get; init; } = name;
+	public string Id { get; init; }
+	public string? Name { get; init; }
 	public ImageSource? ImageSrc { get; set; }
-	public MainWindowViewModel MainWindowVM { get; init; } = mainVM;
-	public IReadOnlyList<YmmPsdLayer> LayerTree { get; init; } = layerTree;
+	public ImageSource? FullImageSrc { get; set; }
+	public MainWindowViewModel MainWindowVM { get; init; }
+	public IReadOnlyList<YmmPsdLayer> LayerTree { get; init; }
 
-	Rectangle PsdRect { get; set; } = psdRect;
+	public Well<System.Windows.Controls.Image> ThumbImageWell { get; }
+		= Well.Factory.Create<System.Windows.Controls.Image>();
 
-	public void ShowLayer()
+	Rectangle PsdRect { get; set; }
+
+	public LipSyncLayerViewModel(
+		string id,
+		string name,
+		MainWindowViewModel mainVM,
+		IReadOnlyList<YmmPsdLayer> layerTree,
+		Rectangle psdRect
+	)
 	{
-		using var bmp = PsdUtil.CreateImageFromTree(LayerTree, PsdRect.Width, PsdRect.Height);
-		var bitmapImage = ConvertToImageSource(bmp);
+		Id = id;
+		Name = name;
+		MainWindowVM = mainVM;
+		LayerTree = layerTree;
+		PsdRect = psdRect;
+
+		ThumbImageWell.Add("Loaded", async () =>
+		{
+			if (ImageSrc is not null) return;
+			var w = PsdRect.Width;
+			var h = PsdRect.Height;
+			ShowThumb(w, h);
+			//ShowLayer();
+		});
+	}
+
+	public void ShowThumb(int width, int height)
+	{
+		using var bmp = PsdUtil.CreateImageFromTree(LayerTree, width, height);
+		var rate = 200.0 / Math.Max(bmp.Width, bmp.Height);
+		var rw = (int)(bmp.Width * rate);
+		var rh = (int)(bmp.Height * rate);
+		var thumb = bmp.GetThumbnailImage(rw, rh, null, IntPtr.Zero);
+		var bitmapImage = ConvertToImageSource(thumb);
+
+		/*
 		var resized = new TransformedBitmap(
 			bitmapImage,
 			//new ScaleTransform(100 / PsdRect.Width, 25 / PsdRect.Height)
-			new ScaleTransform(0.1,0.1)
+			new ScaleTransform(0.1, 0.1)
 		);
-		var w = (double)100 / PsdRect.Width;
-		var h = (double)25 / PsdRect.Height;
+		*/
 
 		var sourceRect = new Int32Rect(
 			0,
-			(int)resized.PixelHeight / 10,
-			(int)resized.PixelWidth,
+			(int)bitmapImage.PixelHeight / 10,
+			(int)bitmapImage.PixelWidth,
 			35 //(int)(resized.Height / 4)*3
 		);
-		var cropped = new CroppedBitmap(resized, sourceRect);
+		var cropped = new CroppedBitmap(bitmapImage, sourceRect);
 
-		var thumb = new WriteableBitmap(cropped);
-		ImageSrc = thumb;
+		FullImageSrc = new WriteableBitmap(bitmapImage);
+		ImageSrc = new WriteableBitmap(cropped);
 	}
 
-	static BitmapImage ConvertToImageSource(Bitmap bitmap)
+	static BitmapImage ConvertToImageSource(System.Drawing.Image bitmap)
 	{
 		using var memoryStream = new MemoryStream();
 		bitmap.Save(memoryStream, ImageFormat.Png);
