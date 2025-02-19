@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Epoxy;
@@ -13,11 +16,15 @@ namespace KuchiPaku.ViewModels;
 [ViewModel]
 public class SelectedLayerViewModel
 {
-	public SelectedLayerViewModel(YmmPsdLayer layer)
+	public SelectedLayerViewModel(
+		YmmPsdLayer layer,
+		MainWindowViewModel vm
+	)
 	{
 		Layer = layer;
-		Children = [.. layer.Children.Select(x => new SelectedLayerViewModel(x))];
+		Children = [.. layer.Children.Select(x => new SelectedLayerViewModel(x, vm))];
 		IsVisible = layer.IsVisible;
+		MainVM = vm;
 
 		if (!IsFolder && !IsSizeZero)
 		{
@@ -45,6 +52,19 @@ public class SelectedLayerViewModel
 					bitmapImage.Freeze(); // UIスレッド以外でも使用可能にする
 
 					Image = bitmapImage;
+
+					_isLoaded = true;
+				}
+			);
+		}
+		else
+		{
+			ThumbImageWell.Add(
+				"Loaded",
+				() =>
+				{
+					_isLoaded = true;
+					return default;
 				}
 			);
 		}
@@ -53,6 +73,9 @@ public class SelectedLayerViewModel
 	public YmmPsdLayer Layer { get; init; }
 
 	public string Name => Layer.Name;
+
+	public string Cid => Layer.Cid;
+
 	public bool IsVisible { get; set; }
 	public bool IsFolder => Layer.IsFolder;
 	public List<SelectedLayerViewModel> Children { get; init; }
@@ -63,4 +86,22 @@ public class SelectedLayerViewModel
 
 	bool IsSizeZero
 		=> Layer.Image.Width == 0 || Layer.Image.Height == 0;
+
+	bool _isLoaded;
+	MainWindowViewModel MainVM { get; init; }
+
+	[PropertyChanged(nameof(IsVisible))]
+	[SuppressMessage("","IDE0051")]
+	private ValueTask IsVisibleChangedAsync(bool value)
+	{
+		if (!_isLoaded) return default;
+
+		Layer.IsVisible = value;
+		Debug.WriteLine($"Layer {Name} [{Cid}].IsVisible : {Layer.IsVisible}");
+
+		//TODO:再描画
+		//MainVM.SelectedLayers.ShowThumb();
+
+		return default;
+	}
 }

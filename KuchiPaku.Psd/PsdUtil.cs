@@ -103,6 +103,10 @@ public static class PsdUtil
 			if (layer.IsFolder)
 			{
 				// フォルダの場合、再帰的にその中のレイヤーを走査
+				if (!layer.IsVisible)
+				{
+					continue;
+				}
 				CombineLayerRecursive(layer.Children.Reverse(), g);
 			}
 			else if (layer.IsNormalLayer)

@@ -580,7 +580,7 @@ public sealed class MainWindowViewModel
 		SelectedLayerTree = [
 			.. value
 				.LayerTree
-				.Select(v => new SelectedLayerViewModel(v))
+				.Select(v => new SelectedLayerViewModel(v, this))
 		];
 		return default;
 	}
