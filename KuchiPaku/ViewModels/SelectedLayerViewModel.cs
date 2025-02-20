@@ -26,6 +26,9 @@ public class SelectedLayerViewModel
 		IsVisible = layer.IsVisible;
 		MainVM = vm;
 
+		IsPsdToolRadioOption = layer.Name.StartsWith('*');
+		IsPsdToolForceDisplay = layer.Name.StartsWith('!');
+
 		if (!IsFolder && !IsSizeZero)
 		{
 			ThumbImageWell.Add(
@@ -81,6 +84,13 @@ public class SelectedLayerViewModel
 	public List<SelectedLayerViewModel> Children { get; init; }
 	public ImageSource? Image { get; set; }
 
+	public string ParentName => Layer.Parent?.Name ?? "RootGroup";
+
+	public bool IsPsdToolMode => MainVM.IsPsdToolMode;
+
+	public bool IsPsdToolRadioOption { get; init; }
+	public bool IsPsdToolForceDisplay { get; init; }
+
 	public Well<System.Windows.Controls.Image> ThumbImageWell { get; } =
 		Well.Factory.Create<System.Windows.Controls.Image>();
 
@@ -100,7 +110,7 @@ public class SelectedLayerViewModel
 		Debug.WriteLine($"Layer {Name} [{Cid}].IsVisible : {Layer.IsVisible}");
 
 		//TODO:再描画
-		//MainVM.SelectedLayers.ShowThumb();
+		MainVM?.SelectedLayers?.ShowThumb();
 
 		return default;
 	}

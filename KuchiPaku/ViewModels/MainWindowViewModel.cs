@@ -62,6 +62,8 @@ public sealed class MainWindowViewModel
 
 	public bool IsShowPsdLayerSelector { get; set; }
 
+	public bool IsPsdToolMode { get; set; }
+
 	private JObject? CurrentYmmp { get; set; }
 
 	private string? CurrentYmmpPath { get; set; }

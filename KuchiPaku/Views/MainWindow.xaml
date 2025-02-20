@@ -294,7 +294,7 @@
                   <ui:SimpleStackPanel Orientation="Horizontal">
                     <ListView
                       x:Name="LipSyncLayers"
-                      Width="200"
+                      Width="170"
                       MinHeight="100"
                       Background="{DynamicResource SystemChromeLowColorBrush}"
                       BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
@@ -330,10 +330,10 @@
                         </DataTemplate>
                       </ListView.ItemTemplate>
                     </ListView>
-                    <!-- preview -->
+                    <!--  preview  -->
                     <Border
                       Name="previewPsd"
-                      Width="125"
+                      Width="150"
                       MinHeight="100"
                       MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
                       BorderBrush="Gray"
@@ -358,77 +358,96 @@
 
                 <!--  right  -->
                 <!--  PSDレイヤー選択 for PSD立ち絵  -->
-                <TreeView
-                  Name="PsdLayerSelector"
-                  MinWidth="200"
-                  MinHeight="100"
-                  MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
-                  Background="{DynamicResource SystemChromeLowColorBrush}"
-                  BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
-                  BorderThickness="1"
-                  IsEnabled="{Binding IsShowPsdLayerSelector}"
-                  ItemsSource="{Binding SelectedLayerTree}"
-                  VirtualizingStackPanel.IsVirtualizing="True"
-                  >
-                  <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type viewmodels:SelectedLayerViewModel}" ItemsSource="{Binding Children}">
-                      <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding IsVisible}">
-                          <StackPanel Orientation="Horizontal">
-                            <Border
-                              Background="{DynamicResource SystemBaseMediumLowColorBrush}"
-                              Margin="3"
-                              >
-                              <Image
-                                Width="36"
-                                Height="28"
-                                epoxy:Fountain.Well="{Binding ThumbImageWell}"
-                                Source="{Binding Image}"
-                                Visibility="{c:Binding !IsFolder}"
-                                Stretch="Uniform"
-                                />
-                            </Border>
-                            <TextBlock
-                              Width="24"
-                              Height="24"
-                              Text="📁"
-                              Visibility="{c:Binding IsFolder}"
-                              TextAlignment="Center"
+                <ui:SimpleStackPanel Orientation="Vertical">
+                  <TreeView
+                    Name="PsdLayerSelector"
+                    MinWidth="200"
+                    MinHeight="100"
+                    MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
+                    Background="{DynamicResource SystemChromeLowColorBrush}"
+                    BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
+                    BorderThickness="1"
+                    IsEnabled="{Binding IsShowPsdLayerSelector}"
+                    ItemsSource="{Binding SelectedLayerTree}"
+                    VirtualizingStackPanel.IsVirtualizing="True"
+                    >
+                    <TreeView.Resources>
+                      <!--  CheckBox / RadioButton の共通テンプレート  -->
+                      <DataTemplate x:Key="LayerItemTemplate">
+                        <StackPanel Orientation="Horizontal">
+                          <Border Margin="3" Background="{DynamicResource SystemBaseMediumLowColorBrush}">
+                            <Image
+                              Width="36"
+                              Height="28"
+                              epoxy:Fountain.Well="{Binding ThumbImageWell}"
+                              Source="{Binding Image}"
+                              Stretch="Uniform"
+                              Visibility="{c:Binding !IsFolder}"
                               />
-                            <TextBlock Margin="5,0,5,0" Text="{Binding Name}" />
-                          </StackPanel>
-                        </CheckBox>
-                      </StackPanel>
-                    </HierarchicalDataTemplate>
-                  </TreeView.Resources>
-
-
-
-                  <!--  sample view  -->
-                  <!--
-                  <TreeView.ItemTemplate>
-                      <DataTemplate>
-                          <StackPanel Orientation="Horizontal">
-                              <CheckBox/>
-                              <TextBlock Text="{Binding}" Margin="5,0,0,0"/>
-                          </StackPanel>
+                          </Border>
+                          <TextBlock
+                            Width="24"
+                            Height="24"
+                            Text="📁"
+                            TextAlignment="Center"
+                            Visibility="{c:Binding IsFolder}"
+                            />
+                          <TextBlock Margin="5,0,5,0" Text="{Binding Name}" />
+                        </StackPanel>
                       </DataTemplate>
-                  </TreeView.ItemTemplate>
-                  <TreeViewItem Header="フォルダ1">
-                    <TreeViewItem Header="レイヤー1-1" />
-                    <TreeViewItem Header="レイヤー1-2" />
-                    <TreeViewItem Header="フォルダ1-3">
-                      <TreeViewItem Header="レイヤー1-3-1" />
-                      <TreeViewItem Header="レイヤー1-3-2" />
-                    </TreeViewItem>
-                  </TreeViewItem>
-                  <TreeViewItem Header="フォルダ2">
-                    <TreeViewItem Header="レイヤー2-1" />
-                    <TreeViewItem Header="レイヤー2-2" />
-                  </TreeViewItem>
-                  <TreeViewItem Header="レイヤー3" />
-                  -->
-                </TreeView>
+
+                      <HierarchicalDataTemplate DataType="{x:Type viewmodels:SelectedLayerViewModel}" ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+
+                          <!-- PSDTool独自拡張 -->
+
+                          <!--  強制表示用  -->
+                          <StackPanel
+                            Visibility="{c:Binding 'IsPsdToolMode and IsPsdToolForceDisplay'}"
+                            >
+                            <ContentPresenter
+                              Content="{Binding}"
+                              ContentTemplate="{StaticResource LayerItemTemplate}" />
+                          </StackPanel>
+
+                          <!--  CheckBox (可視性の制御用)  -->
+                          <CheckBox
+                            IsChecked="{Binding IsVisible}"
+                            Visibility="{c:Binding 'IsPsdToolMode and !IsPsdToolRadioOption and !IsPsdToolForceDisplay'}">
+                            <ContentPresenter
+                              Content="{Binding}"
+                              ContentTemplate="{StaticResource LayerItemTemplate}" />
+                          </CheckBox>
+
+                          <!--  RadioButton (単一選択用)  -->
+                          <RadioButton
+                            GroupName="{Binding ParentName}"
+                            IsChecked="{Binding IsVisible}"
+                            Visibility="{c:Binding 'IsPsdToolMode and IsPsdToolRadioOption'}"
+                            >
+                            <ContentPresenter
+                              Content="{Binding}"
+                              ContentTemplate="{StaticResource LayerItemTemplate}" />
+                          </RadioButton>
+
+                          <!-- No PSDTool独自拡張 -->
+                          <!--  CheckBox (可視性の制御用)  -->
+                          <CheckBox
+                            IsChecked="{Binding IsVisible}"
+                            Visibility="{c:Binding '!IsPsdToolMode'}">
+                            <ContentPresenter
+                              Content="{Binding}"
+                              ContentTemplate="{StaticResource LayerItemTemplate}" />
+                          </CheckBox>
+
+                        </StackPanel>
+                      </HierarchicalDataTemplate>
+                    </TreeView.Resources>
+                  </TreeView>
+
+                </ui:SimpleStackPanel>
+                <!--  end right  -->
+
               </ui:SimpleStackPanel>
 
 
@@ -442,6 +461,14 @@
           -->
           <GroupBox Header="オプション">
             <ui:SimpleStackPanel>
+              <ui:ToggleSwitch
+                x:Name="togglePsdToolMode"
+                Margin="5,0"
+                FontSize="11"
+                IsOn="{Binding IsPsdToolMode}"
+                OffContent="PSDTool独自拡張 (*,!)"
+                OnContent="PSDTool独自拡張 (*,!)"
+                />
               <ui:SimpleStackPanel VerticalAlignment="Center" Orientation="Horizontal">
                 <CheckBox
                   x:Name="MyCheckBox"

@@ -30,6 +30,8 @@ public class LipSyncLayerViewModel
 		= Well.Factory.Create<System.Windows.Controls.Image>();
 
 	Rectangle PsdRect { get; set; }
+	int PsdWidth { get; init; }
+	int PsdHeight { get; init; }
 
 	public LipSyncLayerViewModel(
 		string id,
@@ -44,20 +46,22 @@ public class LipSyncLayerViewModel
 		MainWindowVM = mainVM;
 		LayerTree = layerTree;
 		PsdRect = psdRect;
+		PsdWidth = psdRect.Width;
+		PsdHeight = psdRect.Height;
 
 		ThumbImageWell.Add("Loaded", async () =>
 		{
 			if (ImageSrc is not null) return;
 			var w = PsdRect.Width;
 			var h = PsdRect.Height;
-			ShowThumb(w, h);
+			ShowThumb();
 			//ShowLayer();
 		});
 	}
 
-	public void ShowThumb(int width, int height)
+	public void ShowThumb()
 	{
-		using var bmp = PsdUtil.CreateImageFromTree(LayerTree, width, height);
+		using var bmp = PsdUtil.CreateImageFromTree(LayerTree, PsdWidth, PsdHeight);
 		var rate = 200.0 / Math.Max(bmp.Width, bmp.Height);
 		var rw = (int)(bmp.Width * rate);
 		var rh = (int)(bmp.Height * rate);
