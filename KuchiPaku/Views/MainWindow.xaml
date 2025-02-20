@@ -378,140 +378,173 @@
 
                 <!--  right  -->
                 <!--  PSDレイヤー選択 for PSD立ち絵  -->
-                <ui:SimpleStackPanel Orientation="Vertical">
-                  <TreeView
-                    Name="PsdLayerSelector"
-                    MinWidth="225"
-                    MinHeight="100"
-                    MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
-                    Background="{DynamicResource SystemChromeLowColorBrush}"
-                    BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
-                    BorderThickness="1"
-                    IsEnabled="{Binding IsShowPsdLayerSelector}"
-                    ItemsSource="{Binding SelectedLayerTree}"
-                    VirtualizingStackPanel.IsVirtualizing="True"
-                    >
-                    <TreeView.Resources>
-                      <!--  CheckBox / RadioButton の共通テンプレート  -->
-                      <DataTemplate x:Key="LayerItemTemplate">
-                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                          <Border Margin="3" Background="{DynamicResource SystemBaseMediumLowColorBrush}">
-                            <Image
-                              Width="36"
-                              Height="28"
-                              epoxy:Fountain.Well="{Binding ThumbImageWell}"
-                              Source="{Binding Image}"
-                              Stretch="Uniform"
-                              ToolTipService.BetweenShowDelay="0"
-                              ToolTipService.InitialShowDelay="0"
-                              Visibility="{c:Binding !IsFolder}"
-                              >
-                              <Image.ToolTip>
-                                <ToolTip
-                                  HorizontalOffset="20"
-                                  Placement="Mouse"
-                                  VerticalOffset="20"
+                <TreeView
+                  Name="PsdLayerSelector"
+                  MinWidth="225"
+                  MinHeight="100"
+                  MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
+                  Background="{DynamicResource SystemChromeLowColorBrush}"
+                  BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
+                  BorderThickness="1"
+                  IsEnabled="{Binding IsShowPsdLayerSelector}"
+                  ItemsSource="{Binding SelectedLayerTree}"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  >
+                  <TreeView.ItemContainerStyle>
+                    <Style TargetType="TreeViewItem">
+                      <!--
+                      <Setter Property="Padding" Value="0"/>
+                      <Setter Property="Margin" Value="0"/>
+                      -->
+                      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+
+                      <Setter Property="IsExpanded" Value="{Binding IsFolderOpened, Mode=TwoWay}"/>
+                    </Style>
+                  </TreeView.ItemContainerStyle>
+                  <TreeView.Resources>
+                    <!--  CheckBox / RadioButton の共通テンプレート  -->
+                    <DataTemplate x:Key="LayerItemTemplate">
+                      <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <Border Margin="3" Background="{DynamicResource SystemBaseMediumLowColorBrush}">
+                          <Image
+                            Width="36"
+                            Height="28"
+                            epoxy:Fountain.Well="{Binding ThumbImageWell}"
+                            Source="{Binding Image}"
+                            Stretch="Uniform"
+                            ToolTipService.BetweenShowDelay="0"
+                            ToolTipService.InitialShowDelay="0"
+                            Visibility="{c:Binding !IsFolder}"
+                            >
+                            <Image.ToolTip>
+                              <ToolTip
+                                HorizontalOffset="20"
+                                Placement="Mouse"
+                                VerticalOffset="20"
+                                >
+                                <Border
+                                  Background="{DynamicResource SystemBaseMediumLowColorBrush}"
+                                  BorderBrush="Black"
+                                  BorderThickness="1"
                                   >
-                                  <Border
-                                    Background="{DynamicResource SystemBaseMediumLowColorBrush}"
-                                    BorderBrush="Black"
-                                    BorderThickness="1"
-                                    >
-                                    <Viewbox Width="200" Height="200">
-                                      <Image Source="{Binding Image}" />
-                                    </Viewbox>
-                                  </Border>
-                                </ToolTip>
-                              </Image.ToolTip>
-                            </Image>
-                          </Border>
-                          <TextBlock
-                            Width="24"
-                            Height="24"
-                            Text="📁"
-                            TextAlignment="Center"
-                            Visibility="{c:Binding IsFolder}"
-                            />
-                          <TextBlock Margin="5,0,5,0" Text="{Binding Name}" />
-                        </StackPanel>
-                      </DataTemplate>
+                                  <Viewbox Width="200" Height="200">
+                                    <Image Source="{Binding Image}" />
+                                  </Viewbox>
+                                </Border>
+                              </ToolTip>
+                            </Image.ToolTip>
+                          </Image>
+                        </Border>
+                        <TextBlock
+                          Text="📁"
+                          TextAlignment="Center"
+                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                          Visibility="{c:Binding IsFolder}"
+                          />
+                        <TextBlock
+                          Margin="5,0,5,0"
+                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                          Text="{Binding Name}" />
+                      </StackPanel>
+                    </DataTemplate>
 
-                      <HierarchicalDataTemplate DataType="{x:Type viewmodels:SelectedLayerViewModel}" ItemsSource="{Binding Children}">
-                        <StackPanel Orientation="Horizontal">
-                          <ToggleButton
-                            Name="OverrideLayer"
-                            Margin="5"
-                            Padding="2,5"
-                            VerticalAlignment="Center"
-                            Content=" 😀 "
-                            FontSize="11"
-                            />
+                    <HierarchicalDataTemplate DataType="{x:Type viewmodels:SelectedLayerViewModel}" ItemsSource="{Binding Children}">
+                      <StackPanel
+                        Orientation="Horizontal"
+                        >
+                        <ToggleButton
+                          Name="OverrideLayer"
+                          Margin="5"
+                          Padding="2,5"
+                          VerticalAlignment="Center"
+                          Content=" 😀 "
+                          FontSize="11"
+                          IsChecked="{Binding IsOverrideDefaultVisibility}"
+                          />
 
-                          <!--  ContentControl で UI を切り替える  -->
-                          <ContentControl Content="{Binding}">
-                            <ContentControl.Style>
-                              <Style TargetType="ContentControl">
-                                <!--  デフォルトのテンプレート  -->
-                                <Setter Property="ContentTemplate">
-                                  <Setter.Value>
-                                    <DataTemplate>
-                                      <ui:SimpleStackPanel
-                                        Name="NoPSDTool"
-                                        VerticalAlignment="Center"
-                                        Orientation="Horizontal"
-                                        >
-                                        <CheckBox VerticalAlignment="Center" IsChecked="{Binding IsVisible}">
+                        <!--  ContentControl で UI を切り替える  -->
+                        <ContentControl Content="{Binding}">
+                          <ContentControl.Style>
+                            <Style TargetType="ContentControl">
+                              <!--  デフォルトのテンプレート  -->
+                              <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                  <DataTemplate>
+                                    <ui:SimpleStackPanel
+                                      Name="NoPSDTool"
+                                      VerticalAlignment="Center"
+                                      Orientation="Horizontal"
+                                      >
+                                      <CheckBox VerticalAlignment="Center" IsChecked="{Binding IsVisible}">
+                                        <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
+                                      </CheckBox>
+                                    </ui:SimpleStackPanel>
+                                  </DataTemplate>
+                                </Setter.Value>
+                              </Setter>
+
+                              <Style.Triggers>
+                                <DataTrigger Binding="{c:Binding 'IsPsdToolMode and IsPsdToolForceDisplay'}" Value="True">
+                                  <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                      <DataTemplate>
+                                        <ui:SimpleStackPanel
+                                          Name="PSDTool"
+                                          VerticalAlignment="Center"
+                                          Orientation="Horizontal"
+                                          >
                                           <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
-                                        </CheckBox>
-                                      </ui:SimpleStackPanel>
-                                    </DataTemplate>
-                                  </Setter.Value>
-                                </Setter>
-
-                                <Style.Triggers>
-                                  <DataTrigger Binding="{Binding IsPsdToolMode}" Value="True">
-                                    <Setter Property="ContentTemplate">
-                                      <Setter.Value>
-                                        <DataTemplate>
-                                          <ui:SimpleStackPanel
-                                            Name="PSDTool"
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal"
+                                        </ui:SimpleStackPanel>
+                                      </DataTemplate>
+                                    </Setter.Value>
+                                  </Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{c:Binding 'IsPsdToolMode and !IsPsdToolRadioOption and !IsPsdToolForceDisplay'}" Value="True">
+                                  <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                      <DataTemplate>
+                                        <ui:SimpleStackPanel
+                                          Name="PSDTool"
+                                          VerticalAlignment="Center"
+                                          Orientation="Horizontal"
+                                          >
+                                          <CheckBox IsChecked="{Binding IsVisible}" Visibility="{c:Binding ' !IsPsdToolRadioOption and !IsPsdToolForceDisplay'}">
+                                            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
+                                          </CheckBox>
+                                        </ui:SimpleStackPanel>
+                                      </DataTemplate>
+                                    </Setter.Value>
+                                  </Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{c:Binding 'IsPsdToolMode and IsPsdToolRadioOption'}" Value="True">
+                                  <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                      <DataTemplate>
+                                        <ui:SimpleStackPanel
+                                          Name="PSDTool"
+                                          VerticalAlignment="Center"
+                                          Orientation="Horizontal"
+                                          >
+                                          <RadioButton
+                                            GroupName="{Binding ParentName}"
+                                            IsChecked="{Binding IsVisible}"
+                                            Visibility="{c:Binding 'IsPsdToolRadioOption'}"
                                             >
-
-                                            <StackPanel Visibility="{c:Binding 'IsPsdToolForceDisplay'}">
-                                              <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
-                                            </StackPanel>
-
-                                            <CheckBox IsChecked="{Binding IsVisible}" Visibility="{c:Binding ' !IsPsdToolRadioOption and !IsPsdToolForceDisplay'}">
-                                              <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
-                                            </CheckBox>
-
-                                            <RadioButton
-                                              GroupName="{Binding ParentName}"
-                                              IsChecked="{Binding IsVisible}"
-                                              Visibility="{c:Binding 'IsPsdToolRadioOption'}"
-                                              >
-                                              <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
-                                            </RadioButton>
-                                          </ui:SimpleStackPanel>
-                                        </DataTemplate>
-                                      </Setter.Value>
-                                    </Setter>
-                                  </DataTrigger>
-                                </Style.Triggers>
-                              </Style>
-                            </ContentControl.Style>
-                          </ContentControl>
-
-                        </StackPanel>
-                      </HierarchicalDataTemplate>
-
-                    </TreeView.Resources>
-                  </TreeView>
-
-                </ui:SimpleStackPanel>
-                <!--  end right  -->
+                                            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
+                                          </RadioButton>
+                                        </ui:SimpleStackPanel>
+                                      </DataTemplate>
+                                    </Setter.Value>
+                                  </Setter>
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </ContentControl.Style>
+                        </ContentControl>
+                      </StackPanel>
+                    </HierarchicalDataTemplate>
+                  </TreeView.Resources>
+                </TreeView>
 
               </ui:SimpleStackPanel>
 

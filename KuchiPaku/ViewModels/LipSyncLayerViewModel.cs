@@ -26,6 +26,10 @@ public class LipSyncLayerViewModel
 	public MainWindowViewModel MainWindowVM { get; init; }
 	public IReadOnlyList<YmmPsdLayer> LayerTree { get; init; }
 
+	public Dictionary<string, bool> FolderOpenedList { get; set; } = [];
+	public Dictionary<string, bool> OverrideLayerList { get; set; }
+	= [];
+
 	public Well<System.Windows.Controls.Image> ThumbImageWell { get; }
 		= Well.Factory.Create<System.Windows.Controls.Image>();
 

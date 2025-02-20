@@ -25,6 +25,8 @@ public class SelectedLayerViewModel
 		Children = [.. layer.Children.Select(x => new SelectedLayerViewModel(x, vm))];
 		IsVisible = layer.IsVisible;
 		MainVM = vm;
+		IsFolderOpened = IsOpen();
+		IsOverrideDefaultVisibility = IsOverride();
 
 		IsPsdToolRadioOption = layer.Name.StartsWith('*');
 		IsPsdToolForceDisplay = layer.Name.StartsWith('!');
@@ -73,6 +75,8 @@ public class SelectedLayerViewModel
 		}
 	}
 
+
+
 	public YmmPsdLayer Layer { get; init; }
 
 	public string Name => Layer.Name;
@@ -81,6 +85,8 @@ public class SelectedLayerViewModel
 
 	public bool IsVisible { get; set; }
 	public bool IsFolder => Layer.IsFolder;
+
+	public bool IsFolderOpened { get; set; }
 	public List<SelectedLayerViewModel> Children { get; init; }
 	public ImageSource? Image { get; set; }
 
@@ -91,6 +97,8 @@ public class SelectedLayerViewModel
 	public bool IsPsdToolRadioOption { get; init; }
 	public bool IsPsdToolForceDisplay { get; init; }
 
+	public bool IsOverrideDefaultVisibility { get; set; }
+
 	public Well<System.Windows.Controls.Image> ThumbImageWell { get; } =
 		Well.Factory.Create<System.Windows.Controls.Image>();
 
@@ -100,8 +108,20 @@ public class SelectedLayerViewModel
 	bool _isLoaded;
 	MainWindowViewModel MainVM { get; init; }
 
+	bool IsOverride()
+	{
+		var list = MainVM.SelectedLayers?.OverrideLayerList;
+		return list is not null && list.TryGetValue(Cid, out var result) && result;
+	}
+
+	bool IsOpen()
+	{
+		var list = MainVM.SelectedLayers?.FolderOpenedList;
+		return list is not null && list.TryGetValue(Cid, out var result) && result;
+	}
+
 	[PropertyChanged(nameof(IsVisible))]
-	[SuppressMessage("","IDE0051")]
+	[SuppressMessage("", "IDE0051")]
 	private ValueTask IsVisibleChangedAsync(bool value)
 	{
 		if (!_isLoaded) return default;
@@ -109,8 +129,47 @@ public class SelectedLayerViewModel
 		Layer.IsVisible = value;
 		Debug.WriteLine($"Layer {Name} [{Cid}].IsVisible : {Layer.IsVisible}");
 
-		//TODO:再描画
+		//再描画
 		MainVM?.SelectedLayers?.ShowThumb();
+
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsOverrideDefaultVisibility))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask IsOverrideDefaultVisibilityChangedAsync(bool value)
+	{
+		if (MainVM.SelectedLayers is not null)
+		{
+			MainVM
+				.SelectedLayers
+				.OverrideLayerList
+				.TryAdd(Cid, value);
+		}
+
+		if (Children.Count == 0) return default;
+		foreach (var child in Children)
+		{
+			child.IsOverrideDefaultVisibility = value;
+		}
+
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsFolderOpened))]
+	[SuppressMessage("","IDE0051")]
+	private ValueTask IsFolderOpenedChangedAsync(bool value)
+	{
+		if (!IsFolder) return default;
+
+		if (MainVM.SelectedLayers is not null)
+		{
+			MainVM
+				.SelectedLayers
+				.FolderOpenedList
+				.TryAdd(Cid, value);
+			;
+		}
 
 		return default;
 	}

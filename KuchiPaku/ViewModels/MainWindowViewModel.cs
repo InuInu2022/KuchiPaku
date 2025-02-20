@@ -542,6 +542,8 @@ public sealed class MainWindowViewModel
 			return false;
 		}
 
+		var loading = Manager.Loading("PSD解析中", "解析しています…");
+
 		var psd = await PsdUtil.LoadPsdAsync(path);
 		var tree = PsdUtil.ParsePsdLayers(psd);
 
@@ -564,13 +566,15 @@ public sealed class MainWindowViewModel
 					mainVM: this,
 					layerTree: tree,
 					psdRect: new System.Drawing.Rectangle(
-						0,0,psd.Header.Width, psd.Header.Height)
+						0, 0, psd.Header.Width, psd.Header.Height)
 				)
 				;
 			})
 			.ToList();
 
 		LipSyncLayers = [..layers];
+
+		Manager.Dismiss(loading);
 		return true;
 	}
 

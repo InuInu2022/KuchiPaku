@@ -22,6 +22,8 @@ public record YmmPsdLayer(
 	public bool IsVisible { get; set; }
 		= (Layer.Record.LayerFlags & LayerFlags.Visible) != LayerFlags.Visible;
 
+	//public bool IsOverrideLayer { get; set; }
+
 	public string Name => Layer.Record.LayerName;
 	public bool IsFolder => Layer.IsFolder();
 	public bool IsFolderOpened => Layer.IsFolderOpened();
