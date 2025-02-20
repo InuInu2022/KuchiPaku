@@ -245,7 +245,7 @@
                   <ListView
                     x:Name="LipSyncImage"
                     Width="300"
-                    MinHeight="100"
+                    MinHeight="200"
                     Background="{DynamicResource SystemChromeLowColorBrush}"
                     BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
                     BorderThickness="1"
@@ -295,7 +295,7 @@
                     <ListView
                       x:Name="LipSyncLayers"
                       Width="170"
-                      MinHeight="100"
+                      MinHeight="275"
                       Background="{DynamicResource SystemChromeLowColorBrush}"
                       BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
                       BorderThickness="1"
@@ -310,7 +310,7 @@
                           <StackPanel Orientation="Horizontal">
                             <TextBlock
                               MinWidth="50"
-                              Margin="5"
+                              Margin="0,5"
                               Text="{Binding Name}"
                               />
                             <Border
@@ -324,7 +324,27 @@
                                 Height="35"
                                 epoxy:Fountain.Well="{Binding ThumbImageWell}"
                                 Source="{Binding ImageSrc}"
-                                />
+                                ToolTipService.BetweenShowDelay="0"
+                                ToolTipService.InitialShowDelay="0"
+                                >
+                                <Image.ToolTip>
+                                  <ToolTip
+                                    HorizontalOffset="20"
+                                    Placement="Mouse"
+                                    VerticalOffset="20"
+                                    >
+                                    <Border
+                                      Background="{DynamicResource SystemBaseMediumLowColorBrush}"
+                                      BorderBrush="Black"
+                                      BorderThickness="1"
+                                      >
+                                      <Viewbox Width="300" Height="150">
+                                        <Image Source="{Binding ImageSrc}" Stretch="UniformToFill" />
+                                      </Viewbox>
+                                    </Border>
+                                  </ToolTip>
+                                </Image.ToolTip>
+                              </Image>
                             </Border>
                           </StackPanel>
                         </DataTemplate>
@@ -333,7 +353,7 @@
                     <!--  preview  -->
                     <Border
                       Name="previewPsd"
-                      Width="150"
+                      Width="180"
                       MinHeight="100"
                       MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
                       BorderBrush="Gray"
@@ -361,7 +381,7 @@
                 <ui:SimpleStackPanel Orientation="Vertical">
                   <TreeView
                     Name="PsdLayerSelector"
-                    MinWidth="200"
+                    MinWidth="225"
                     MinHeight="100"
                     MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
                     Background="{DynamicResource SystemChromeLowColorBrush}"
@@ -374,7 +394,7 @@
                     <TreeView.Resources>
                       <!--  CheckBox / RadioButton の共通テンプレート  -->
                       <DataTemplate x:Key="LayerItemTemplate">
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                           <Border Margin="3" Background="{DynamicResource SystemBaseMediumLowColorBrush}">
                             <Image
                               Width="36"
@@ -382,8 +402,28 @@
                               epoxy:Fountain.Well="{Binding ThumbImageWell}"
                               Source="{Binding Image}"
                               Stretch="Uniform"
+                              ToolTipService.BetweenShowDelay="0"
+                              ToolTipService.InitialShowDelay="0"
                               Visibility="{c:Binding !IsFolder}"
-                              />
+                              >
+                              <Image.ToolTip>
+                                <ToolTip
+                                  HorizontalOffset="20"
+                                  Placement="Mouse"
+                                  VerticalOffset="20"
+                                  >
+                                  <Border
+                                    Background="{DynamicResource SystemBaseMediumLowColorBrush}"
+                                    BorderBrush="Black"
+                                    BorderThickness="1"
+                                    >
+                                    <Viewbox Width="200" Height="200">
+                                      <Image Source="{Binding Image}" />
+                                    </Viewbox>
+                                  </Border>
+                                </ToolTip>
+                              </Image.ToolTip>
+                            </Image>
                           </Border>
                           <TextBlock
                             Width="24"
@@ -398,50 +438,75 @@
 
                       <HierarchicalDataTemplate DataType="{x:Type viewmodels:SelectedLayerViewModel}" ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
+                          <ToggleButton
+                            Name="OverrideLayer"
+                            Margin="5"
+                            Padding="2,5"
+                            VerticalAlignment="Center"
+                            Content=" 😀 "
+                            FontSize="11"
+                            />
 
-                          <!-- PSDTool独自拡張 -->
+                          <!--  ContentControl で UI を切り替える  -->
+                          <ContentControl Content="{Binding}">
+                            <ContentControl.Style>
+                              <Style TargetType="ContentControl">
+                                <!--  デフォルトのテンプレート  -->
+                                <Setter Property="ContentTemplate">
+                                  <Setter.Value>
+                                    <DataTemplate>
+                                      <ui:SimpleStackPanel
+                                        Name="NoPSDTool"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        >
+                                        <CheckBox VerticalAlignment="Center" IsChecked="{Binding IsVisible}">
+                                          <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
+                                        </CheckBox>
+                                      </ui:SimpleStackPanel>
+                                    </DataTemplate>
+                                  </Setter.Value>
+                                </Setter>
 
-                          <!--  強制表示用  -->
-                          <StackPanel
-                            Visibility="{c:Binding 'IsPsdToolMode and IsPsdToolForceDisplay'}"
-                            >
-                            <ContentPresenter
-                              Content="{Binding}"
-                              ContentTemplate="{StaticResource LayerItemTemplate}" />
-                          </StackPanel>
+                                <Style.Triggers>
+                                  <DataTrigger Binding="{Binding IsPsdToolMode}" Value="True">
+                                    <Setter Property="ContentTemplate">
+                                      <Setter.Value>
+                                        <DataTemplate>
+                                          <ui:SimpleStackPanel
+                                            Name="PSDTool"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            >
 
-                          <!--  CheckBox (可視性の制御用)  -->
-                          <CheckBox
-                            IsChecked="{Binding IsVisible}"
-                            Visibility="{c:Binding 'IsPsdToolMode and !IsPsdToolRadioOption and !IsPsdToolForceDisplay'}">
-                            <ContentPresenter
-                              Content="{Binding}"
-                              ContentTemplate="{StaticResource LayerItemTemplate}" />
-                          </CheckBox>
+                                            <StackPanel Visibility="{c:Binding 'IsPsdToolForceDisplay'}">
+                                              <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
+                                            </StackPanel>
 
-                          <!--  RadioButton (単一選択用)  -->
-                          <RadioButton
-                            GroupName="{Binding ParentName}"
-                            IsChecked="{Binding IsVisible}"
-                            Visibility="{c:Binding 'IsPsdToolMode and IsPsdToolRadioOption'}"
-                            >
-                            <ContentPresenter
-                              Content="{Binding}"
-                              ContentTemplate="{StaticResource LayerItemTemplate}" />
-                          </RadioButton>
+                                            <CheckBox IsChecked="{Binding IsVisible}" Visibility="{c:Binding ' !IsPsdToolRadioOption and !IsPsdToolForceDisplay'}">
+                                              <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
+                                            </CheckBox>
 
-                          <!-- No PSDTool独自拡張 -->
-                          <!--  CheckBox (可視性の制御用)  -->
-                          <CheckBox
-                            IsChecked="{Binding IsVisible}"
-                            Visibility="{c:Binding '!IsPsdToolMode'}">
-                            <ContentPresenter
-                              Content="{Binding}"
-                              ContentTemplate="{StaticResource LayerItemTemplate}" />
-                          </CheckBox>
+                                            <RadioButton
+                                              GroupName="{Binding ParentName}"
+                                              IsChecked="{Binding IsVisible}"
+                                              Visibility="{c:Binding 'IsPsdToolRadioOption'}"
+                                              >
+                                              <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource LayerItemTemplate}" />
+                                            </RadioButton>
+                                          </ui:SimpleStackPanel>
+                                        </DataTemplate>
+                                      </Setter.Value>
+                                    </Setter>
+                                  </DataTrigger>
+                                </Style.Triggers>
+                              </Style>
+                            </ContentControl.Style>
+                          </ContentControl>
 
                         </StackPanel>
                       </HierarchicalDataTemplate>
+
                     </TreeView.Resources>
                   </TreeView>
 
