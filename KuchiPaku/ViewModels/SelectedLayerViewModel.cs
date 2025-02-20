@@ -31,6 +31,8 @@ public class SelectedLayerViewModel
 		IsPsdToolRadioOption = layer.Name.StartsWith('*');
 		IsPsdToolForceDisplay = layer.Name.StartsWith('!');
 
+		_isInitialized = true;
+
 		if (!IsFolder && !IsSizeZero)
 		{
 			ThumbImageWell.Add(
@@ -106,6 +108,7 @@ public class SelectedLayerViewModel
 		=> Layer.Image.Width == 0 || Layer.Image.Height == 0;
 
 	bool _isLoaded;
+	bool _isInitialized;
 	MainWindowViewModel MainVM { get; init; }
 
 	bool IsOverride()
@@ -139,6 +142,8 @@ public class SelectedLayerViewModel
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask IsOverrideDefaultVisibilityChangedAsync(bool value)
 	{
+		if (!_isInitialized) return default;
+
 		if (MainVM.SelectedLayers is not null)
 		{
 			MainVM
@@ -161,6 +166,7 @@ public class SelectedLayerViewModel
 	private ValueTask IsFolderOpenedChangedAsync(bool value)
 	{
 		if (!IsFolder) return default;
+		if (!_isInitialized) return default;
 
 		if (MainVM.SelectedLayers is not null)
 		{

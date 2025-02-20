@@ -424,10 +424,13 @@ public sealed class MainWindowViewModel
 		}
 		else if (chara.TachieType == YmmpTachieType.PsdTachie)
 		{
-			//TODO:psd
+			//psd
+			var loading = Manager.Loading("PSD解析中", "解析しています…");
 
 			//psd版LipSyncImagesのリスト構築
 			var flowControl = await LoadLipSyncLayersAsync(chara);
+
+			Manager.Dismiss(loading);
 			if (!flowControl) return;
 
 			//psd layer selectorのツリー表示構築
@@ -542,7 +545,7 @@ public sealed class MainWindowViewModel
 			return false;
 		}
 
-		var loading = Manager.Loading("PSD解析中", "解析しています…");
+
 
 		var psd = await PsdUtil.LoadPsdAsync(path);
 		var tree = PsdUtil.ParsePsdLayers(psd);
@@ -574,7 +577,6 @@ public sealed class MainWindowViewModel
 
 		LipSyncLayers = [..layers];
 
-		Manager.Dismiss(loading);
 		return true;
 	}
 
