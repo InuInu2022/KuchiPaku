@@ -137,6 +137,9 @@ public sealed class MainWindowViewModel
 					},
 					DefaultMouthImgPath = v.TachieDefaultItemParameter.Mouth,
 					TachieType = v.TachieType,
+					EnableLayers = v.TachieType == YmmpTachieType.PsdTachie
+						? v.TachieDefaultItemParameter.EnableLayers
+						: [],
 				});
 
 			LipSyncSettings.Clear();
@@ -550,6 +553,13 @@ public sealed class MainWindowViewModel
 		var psd = await PsdUtil.LoadPsdAsync(path);
 		var tree = PsdUtil.ParsePsdLayers(psd);
 
+		//TODO: デフォルトレイヤー表示をymmpの"TachieDefaultItemParameter"から取得して反映、なければPSDファイルそのまま
+		var defs = SelectedCharaItem?.EnableLayers;
+		if (defs is not null && defs!.Any())
+		{
+			tree = [..SetDefaultLayer(tree)];
+		}
+
 		var layers = LipSyncSettings[chara!.Name!]
 			.MousePhonemeImagePair.Select(v =>
 			{
@@ -575,9 +585,19 @@ public sealed class MainWindowViewModel
 			})
 			.ToList();
 
-		LipSyncLayers = [..layers];
+		LipSyncLayers = [.. layers];
 
 		return true;
+
+		IList<YmmPsdLayer> SetDefaultLayer(IEnumerable<YmmPsdLayer> tree)
+		{
+			foreach (var layer in tree)
+			{
+				layer.IsVisible = defs.Contains(layer.Cid);
+				layer.Children = SetDefaultLayer(layer.Children);
+			}
+			return [..tree];
+		}
 	}
 
 	[PropertyChanged(nameof(SelectedLayers))]

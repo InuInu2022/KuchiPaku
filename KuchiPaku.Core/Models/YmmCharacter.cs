@@ -107,6 +107,9 @@ public partial class TachieDefaultParameter
 
 	[JsonProperty("IsHiddenWhenNoSpeech", NullValueHandling = NullValueHandling.Ignore)]
 	public bool? IsHiddenWhenNoSpeech { get; set; }
+
+	[JsonProperty("EnableLayers", NullValueHandling = NullValueHandling.Ignore)]
+	public List<string> EnableLayers { get; set; }
 }
 
 public partial class Voice

@@ -1,4 +1,5 @@
-using System;
+using System.Collections.Generic;
+
 using Epoxy;
 
 using KuchiPaku.Models;
@@ -24,4 +25,6 @@ public class CharacterListViewModel
 			YmmpTachieType.AnimationTachie => "Anim.",
 			_ => "非対応",
 		};
+
+	public IEnumerable<string> EnableLayers { get; set; } = [];
 }
