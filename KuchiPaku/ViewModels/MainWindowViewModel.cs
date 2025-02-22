@@ -573,11 +573,18 @@ public sealed class MainWindowViewModel
 					"N" => "ん",
 					_ => "ERROR",
 				};
+				var clonedTree = tree
+					.Select(layer =>
+					{
+						var c = layer with { };
+						return c;
+					})
+					.ToList();
 				return new LipSyncLayerViewModel(
 					id: v.Key,
 					name: lineName,
 					mainVM: this,
-					layerTree: tree,
+					layerTree: clonedTree,
 					psdRect: new System.Drawing.Rectangle(
 						0, 0, psd.Header.Width, psd.Header.Height)
 				)
@@ -585,6 +592,7 @@ public sealed class MainWindowViewModel
 			})
 			.ToList();
 
+		LipSyncLayers.Clear();
 		LipSyncLayers = [.. layers];
 
 		return true;

@@ -188,6 +188,7 @@
                       </ListView.ItemTemplate>
                     </ListView>
                     <Separator />
+
                     <ui:SimpleStackPanel Orientation="Horizontal">
                       <ComboBox
                         x:Name="LipSyncSetting"
@@ -198,6 +199,7 @@
                         <ComboBoxItem Content="口パク設定1" />
                         <ComboBoxItem Content="口パク設定2" />
                       </ComboBox>
+                      <!--
                       <ui:CommandBar DefaultLabelPosition="Right">
                         <ui:AppBarButton
                           Icon="Add"
@@ -205,6 +207,7 @@
                           Label="Add"
                           />
                       </ui:CommandBar>
+                      -->
                     </ui:SimpleStackPanel>
                   </ui:SimpleStackPanel>
                 </ui:SimpleStackPanel>
@@ -386,9 +389,9 @@
                   Background="{DynamicResource SystemChromeLowColorBrush}"
                   BorderBrush="{DynamicResource SystemBaseMediumLowColorBrush}"
                   BorderThickness="1"
-                  IsEnabled="{Binding IsShowPsdLayerSelector}"
                   ItemsSource="{Binding SelectedLayerTree}"
                   VirtualizingStackPanel.IsVirtualizing="True"
+                  Visibility="{c:Binding IsShowPsdLayerSelector}"
                   >
                   <TreeView.ItemContainerStyle>
                     <Style TargetType="TreeViewItem">
@@ -414,6 +417,7 @@
                             Stretch="Uniform"
                             ToolTipService.BetweenShowDelay="0"
                             ToolTipService.InitialShowDelay="0"
+                            ToolTipService.ShowOnDisabled="True"
                             Visibility="{c:Binding !IsFolder}"
                             >
                             <Image.ToolTip>
@@ -463,7 +467,10 @@
                           />
 
                         <!--  ContentControl で UI を切り替える  -->
-                        <ContentControl Content="{Binding}">
+                        <ContentControl
+                          Content="{Binding}"
+                          IsEnabled="{Binding IsOverrideDefaultVisibility}"
+                          >
                           <ContentControl.Style>
                             <Style TargetType="ContentControl">
                               <!--  デフォルトのテンプレート  -->

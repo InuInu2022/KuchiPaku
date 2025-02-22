@@ -23,7 +23,7 @@ public class SelectedLayerViewModel
 	{
 		Layer = layer;
 		Children = [.. layer.Children.Select(x => new SelectedLayerViewModel(x, vm))];
-		IsVisible = layer.IsVisible;
+		IsVisible = IsLayerVisible(); //layer.IsVisible;
 		MainVM = vm;
 		IsFolderOpened = IsOpen();
 		IsOverrideDefaultVisibility = IsOverride();
@@ -123,6 +123,12 @@ public class SelectedLayerViewModel
 		return list is not null && list.TryGetValue(Cid, out var result) && result;
 	}
 
+	bool IsLayerVisible()
+	{
+		var list = MainVM.SelectedLayers?.VisibleLayerList;
+		return list is not null && list.TryGetValue(Cid, out var result) && result;
+	}
+
 	[PropertyChanged(nameof(IsVisible))]
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask IsVisibleChangedAsync(bool value)
@@ -131,6 +137,8 @@ public class SelectedLayerViewModel
 
 		Layer.IsVisible = value;
 		Debug.WriteLine($"Layer {Name} [{Cid}].IsVisible : {Layer.IsVisible}");
+		//TODO: レイヤーの表示・非表示はPSDデータに反映ではなく別管理に
+		MainVM.SelectedLayers?.VisibleLayerList.TryAdd(Cid, value);
 
 		//再描画
 		MainVM?.SelectedLayers?.ShowThumb();
