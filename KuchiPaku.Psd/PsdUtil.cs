@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using static PsdParser.AdditionalLayerInformations.SectionDividerSetting;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace KuchiPaku.Psd;
 
@@ -57,7 +58,7 @@ public static class PsdUtil
 		return tree;
 	}
 
-	public static Bitmap CreateImageFromTree(
+	public static async Task<Bitmap> CreateImageFromTreeAsync(
 		IReadOnlyList<YmmPsdLayer> tree, int width, int height,
 		IEnumerable<string>? enabledLayers
 	)
@@ -71,7 +72,8 @@ public static class PsdUtil
 			g.Clear(System.Drawing.Color.Transparent);
 
 			// 入れ子になったレイヤーを走査して合成
-			CombineLayerRecursive(tree, g, enabledLayers);
+			await CombineLayerRecursiveAsync(tree, g, enabledLayers)
+				.ConfigureAwait(false);
 		}
 
 		return finalBitmap;
@@ -79,7 +81,13 @@ public static class PsdUtil
 
 	public static async Task<Bitmap> CreateImageFromLayerAsync(YmmPsdLayer layer)
 	{
-		///*
+		var pixelData = await ReadImageAsync(layer).ConfigureAwait(false);
+		return CreateBitmapFromPixelData(
+			pixelData, layer.Image.Width, layer.Image.Height);
+	}
+
+	static async Task<byte[]> ReadImageAsync(YmmPsdLayer layer)
+	{
 		await _lock.WaitAsync().ConfigureAwait(false);
 		byte[] pixelData = [];
 		try
@@ -91,13 +99,11 @@ public static class PsdUtil
 		{
 			_lock.Release();
 		}
-		//*/
-		//var pixelData = layer.Image.Read();
-		return CreateBitmapFromPixelData(
-			pixelData, layer.Image.Width, layer.Image.Height);
+
+		return pixelData;
 	}
 
-	static void CombineLayerRecursive(
+	static async ValueTask CombineLayerRecursiveAsync(
 		IEnumerable<YmmPsdLayer> layers,
 		Graphics g,
 		IEnumerable<string>? enabledLayers
@@ -112,7 +118,8 @@ public static class PsdUtil
 				{
 					continue;
 				}
-				CombineLayerRecursive(layer.Children.Reverse(), g, enabledLayers);
+				await CombineLayerRecursiveAsync(layer.Children.Reverse(), g, enabledLayers)
+					.ConfigureAwait(false);
 			}
 			else if (layer.IsNormalLayer)
 			{
@@ -127,7 +134,8 @@ public static class PsdUtil
 				}
 
 				// 通常レイヤーの場合、ビットマップを取得して合成
-				byte[] pixelData = layer.Image.Read(); // Pixelデータ取得
+				var pixelData = await ReadImageAsync(layer)
+					.ConfigureAwait(false); // Pixelデータ取得
 				using var layerBitmap = CreateBitmapFromPixelData(
 					pixelData,
 					layer.Image.Width,

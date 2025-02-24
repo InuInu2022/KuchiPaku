@@ -62,16 +62,17 @@ public class LipSyncLayerViewModel
 			if (ImageSrc is not null) return;
 			var w = PsdRect.Width;
 			var h = PsdRect.Height;
-			ShowThumb(VisibleLayerList.Where(v => v.Value).Select(v=>v.Key));
+			await ShowThumbAsync(VisibleLayerList.Where(v => v.Value).Select(v=>v.Key));
 			//ShowLayer();
 		});
 	}
 
-	public void ShowThumb(
+	public async Task ShowThumbAsync(
 		IEnumerable<string> enabledLayers
 	)
 	{
-		using var bmp = PsdUtil.CreateImageFromTree(LayerTree, PsdWidth, PsdHeight, enabledLayers);
+		using var bmp = await PsdUtil
+			.CreateImageFromTreeAsync(LayerTree, PsdWidth, PsdHeight, enabledLayers);
 		var rate = 200.0 / Math.Max(bmp.Width, bmp.Height);
 		var rw = (int)(bmp.Width * rate);
 		var rh = (int)(bmp.Height * rate);

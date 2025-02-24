@@ -433,6 +433,8 @@ public sealed class MainWindowViewModel
 			//psd版LipSyncImagesのリスト構築
 			var flowControl = await LoadLipSyncLayersAsync(chara);
 
+			Manager.Info("PSD解析終了", "PSDファイルの解析終了！", true);
+			//await Task.Delay(1000);
 			Manager.Dismiss(loading);
 			if (!flowControl) return;
 
@@ -553,7 +555,7 @@ public sealed class MainWindowViewModel
 		var psd = await PsdUtil.LoadPsdAsync(path);
 		var tree = PsdUtil.ParsePsdLayers(psd);
 
-		//TODO: デフォルトレイヤー表示をymmpの"TachieDefaultItemParameter"から取得して反映、なければPSDファイルそのまま
+		//デフォルトレイヤー表示をymmpの"TachieDefaultItemParameter"から取得して反映、なければPSDファイルそのまま
 		var defs = SelectedCharaItem?.EnableLayers;
 		if (defs is not null && defs!.Any())
 		{

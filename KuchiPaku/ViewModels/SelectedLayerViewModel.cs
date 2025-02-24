@@ -148,7 +148,7 @@ public class SelectedLayerViewModel
 		var list = MainVM.SelectedLayers?.VisibleLayerList
 			.Where(x => x.Value)
 			.Select(x => x.Key) ?? [];
-		MainVM?.SelectedLayers?.ShowThumb(list);
+		MainVM?.SelectedLayers?.ShowThumbAsync(list);
 
 		return default;
 	}
