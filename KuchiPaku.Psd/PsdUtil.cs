@@ -58,7 +58,8 @@ public static class PsdUtil
 	}
 
 	public static Bitmap CreateImageFromTree(
-		IReadOnlyList<YmmPsdLayer> tree, int width, int height
+		IReadOnlyList<YmmPsdLayer> tree, int width, int height,
+		IEnumerable<string>? enabledLayers
 	)
 	{
 		var finalBitmap = new Bitmap(width, height);
@@ -70,7 +71,7 @@ public static class PsdUtil
 			g.Clear(System.Drawing.Color.Transparent);
 
 			// 入れ子になったレイヤーを走査して合成
-			CombineLayerRecursive(tree, g);
+			CombineLayerRecursive(tree, g, enabledLayers);
 		}
 
 		return finalBitmap;
@@ -96,18 +97,22 @@ public static class PsdUtil
 			pixelData, layer.Image.Width, layer.Image.Height);
 	}
 
-	static void CombineLayerRecursive(IEnumerable<YmmPsdLayer> layers, Graphics g)
+	static void CombineLayerRecursive(
+		IEnumerable<YmmPsdLayer> layers,
+		Graphics g,
+		IEnumerable<string>? enabledLayers
+	)
 	{
 		foreach (var layer in layers.Reverse())
 		{
 			if (layer.IsFolder)
 			{
 				// フォルダの場合、再帰的にその中のレイヤーを走査
-				if (!layer.IsVisible)
+				if (!enabledLayers?.Contains(layer.Cid, StringComparer.Ordinal) ??  false /*!layer.IsVisible*/)
 				{
 					continue;
 				}
-				CombineLayerRecursive(layer.Children.Reverse(), g);
+				CombineLayerRecursive(layer.Children.Reverse(), g, enabledLayers);
 			}
 			else if (layer.IsNormalLayer)
 			{
@@ -116,7 +121,7 @@ public static class PsdUtil
 					continue;
 				}
 
-				if (!layer.IsVisible)
+				if (!enabledLayers?.Contains(layer.Cid, StringComparer.Ordinal) ?? false /*!layer.IsVisible*/)
 				{
 					continue;
 				}

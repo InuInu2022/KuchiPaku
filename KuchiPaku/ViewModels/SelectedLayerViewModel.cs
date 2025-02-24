@@ -23,10 +23,11 @@ public class SelectedLayerViewModel
 	{
 		Layer = layer;
 		Children = [.. layer.Children.Select(x => new SelectedLayerViewModel(x, vm))];
-		IsVisible = IsLayerVisible(); //layer.IsVisible;
+
 		MainVM = vm;
 		IsFolderOpened = IsOpen();
 		IsOverrideDefaultVisibility = IsOverride();
+		IsVisible = IsLayerVisible(); //layer.IsVisible;
 
 		IsPsdToolRadioOption = layer.Name.StartsWith('*');
 		IsPsdToolForceDisplay = layer.Name.StartsWith('!');
@@ -113,13 +114,13 @@ public class SelectedLayerViewModel
 
 	bool IsOverride()
 	{
-		var list = MainVM.SelectedLayers?.OverrideLayerList;
+		var list = MainVM?.SelectedLayers?.OverrideLayerList;
 		return list is not null && list.TryGetValue(Cid, out var result) && result;
 	}
 
 	bool IsOpen()
 	{
-		var list = MainVM.SelectedLayers?.FolderOpenedList;
+		var list = MainVM?.SelectedLayers?.FolderOpenedList;
 		return list is not null && list.TryGetValue(Cid, out var result) && result;
 	}
 
@@ -135,13 +136,19 @@ public class SelectedLayerViewModel
 	{
 		if (!_isLoaded) return default;
 
-		Layer.IsVisible = value;
-		Debug.WriteLine($"Layer {Name} [{Cid}].IsVisible : {Layer.IsVisible}");
+		//Layer.IsVisible = value;
+		Debug.WriteLine($"Layer {Name} [{Cid}].IsVisible : {value}");
 		//TODO: レイヤーの表示・非表示はPSDデータに反映ではなく別管理に
-		MainVM.SelectedLayers?.VisibleLayerList.TryAdd(Cid, value);
+		if (MainVM.SelectedLayers is not null)
+		{
+			MainVM.SelectedLayers.VisibleLayerList[Cid] = value;
+		}
 
 		//再描画
-		MainVM?.SelectedLayers?.ShowThumb();
+		var list = MainVM.SelectedLayers?.VisibleLayerList
+			.Where(x => x.Value)
+			.Select(x => x.Key) ?? [];
+		MainVM?.SelectedLayers?.ShowThumb(list);
 
 		return default;
 	}

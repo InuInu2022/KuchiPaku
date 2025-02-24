@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -43,7 +44,8 @@ public class LipSyncLayerViewModel
 		string name,
 		MainWindowViewModel mainVM,
 		IReadOnlyList<YmmPsdLayer> layerTree,
-		Rectangle psdRect
+		Rectangle psdRect,
+		Dictionary<string, bool> defaultVisible
 	)
 	{
 		Id = id;
@@ -53,20 +55,23 @@ public class LipSyncLayerViewModel
 		PsdRect = psdRect;
 		PsdWidth = psdRect.Width;
 		PsdHeight = psdRect.Height;
+		VisibleLayerList = defaultVisible;
 
 		ThumbImageWell.Add("Loaded", async () =>
 		{
 			if (ImageSrc is not null) return;
 			var w = PsdRect.Width;
 			var h = PsdRect.Height;
-			ShowThumb();
+			ShowThumb(VisibleLayerList.Where(v => v.Value).Select(v=>v.Key));
 			//ShowLayer();
 		});
 	}
 
-	public void ShowThumb()
+	public void ShowThumb(
+		IEnumerable<string> enabledLayers
+	)
 	{
-		using var bmp = PsdUtil.CreateImageFromTree(LayerTree, PsdWidth, PsdHeight);
+		using var bmp = PsdUtil.CreateImageFromTree(LayerTree, PsdWidth, PsdHeight, enabledLayers);
 		var rate = 200.0 / Math.Max(bmp.Width, bmp.Height);
 		var rw = (int)(bmp.Width * rate);
 		var rh = (int)(bmp.Height * rate);

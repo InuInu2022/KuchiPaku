@@ -586,7 +586,10 @@ public sealed class MainWindowViewModel
 					mainVM: this,
 					layerTree: clonedTree,
 					psdRect: new System.Drawing.Rectangle(
-						0, 0, psd.Header.Width, psd.Header.Height)
+						0, 0, psd.Header.Width, psd.Header.Height),
+					defaultVisible: defs is not null && defs.Any()
+						? defs.Select(v => (v, true)).ToDictionary()
+						: []
 				)
 				;
 			})
