@@ -138,7 +138,7 @@ public class SelectedLayerViewModel
 
 		//Layer.IsVisible = value;
 		Debug.WriteLine($"Layer {Name} [{Cid}].IsVisible : {value}");
-		//TODO: レイヤーの表示・非表示はPSDデータに反映ではなく別管理に
+		//レイヤーの表示・非表示はPSDデータに反映ではなく別管理に
 		if (MainVM.SelectedLayers is not null)
 		{
 			MainVM.SelectedLayers.VisibleLayerList[Cid] = value;
@@ -149,6 +149,19 @@ public class SelectedLayerViewModel
 			.Where(x => x.Value)
 			.Select(x => x.Key) ?? [];
 		MainVM?.SelectedLayers?.ShowThumbAsync(list);
+
+		if (MainVM is not null &&
+			MainVM.LipSyncSettings.ContainsKey(MainVM.SelectedCharaItem?.Name ?? ""))
+		{
+			var pair = MainVM
+				.LipSyncSettings[MainVM.SelectedCharaItem!.Name!]
+				.MousePhonemeLayerPair;
+
+			if (pair.ContainsKey(MainVM.SelectedLayers!.Id))
+			{
+				pair[MainVM.SelectedLayers.Id] = list;
+			}
+		}
 
 		return default;
 	}

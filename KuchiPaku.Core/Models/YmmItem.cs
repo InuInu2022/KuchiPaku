@@ -125,8 +125,8 @@ public partial class VoiceParameter
     [JsonProperty("SentensePause")]
     public int? SentensePause { get; set; }
 
-    [JsonProperty("Preset")]
-    public string? Preset { get; set; }
+    //[JsonProperty("Preset")]
+    //public string? Preset { get; set; }
 }
 
 public partial class TachieFaceParameter{

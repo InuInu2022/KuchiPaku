@@ -181,7 +181,7 @@
                               VerticalAlignment="Bottom"
                               FontSize="8"
                               Foreground="Gray"
-                              Text="{Binding TacheTypeText}"
+                              Text="{Binding TachieTypeText}"
                               />
                           </StackPanel>
                         </DataTemplate>

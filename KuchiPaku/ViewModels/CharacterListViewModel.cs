@@ -18,7 +18,7 @@ public class CharacterListViewModel
 
 	public bool IsExport { get; set; } = true;
 
-	public string TacheTypeText
+	public string TachieTypeText
 		=> TachieType switch
 		{
 			YmmpTachieType.PsdTachie => "PSD",

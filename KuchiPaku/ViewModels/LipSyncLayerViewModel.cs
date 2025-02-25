@@ -42,6 +42,7 @@ public class LipSyncLayerViewModel
 	public LipSyncLayerViewModel(
 		string id,
 		string name,
+		string characterName,
 		MainWindowViewModel mainVM,
 		IReadOnlyList<YmmPsdLayer> layerTree,
 		Rectangle psdRect,
@@ -57,14 +58,40 @@ public class LipSyncLayerViewModel
 		PsdHeight = psdRect.Height;
 		VisibleLayerList = defaultVisible;
 
+		//override default visible
+		SetVisibleLayersFromSavedOptions(characterName);
+
 		ThumbImageWell.Add("Loaded", async () =>
 		{
 			if (ImageSrc is not null) return;
 			var w = PsdRect.Width;
 			var h = PsdRect.Height;
-			await ShowThumbAsync(VisibleLayerList.Where(v => v.Value).Select(v=>v.Key));
+			await ShowThumbAsync(VisibleLayerList.Where(v => v.Value).Select(v => v.Key));
 			//ShowLayer();
 		});
+	}
+
+	void SetVisibleLayersFromSavedOptions(string characterName)
+	{
+		if (
+			MainWindowVM.LipSyncSettings.TryGetValue(characterName, out var savedOption)
+			&&
+			savedOption.MousePhonemeLayerPair.TryGetValue(Id, out var layers)
+			&&
+			layers is not null
+		)
+		{
+			VisibleLayerList = VisibleLayerList
+				.Select(v => (v.Key, false))
+				.ToDictionary(v => v.Key, v => v.Item2);
+			foreach (var layer in layers)
+			{
+				if (VisibleLayerList.ContainsKey(layer))
+				{
+					VisibleLayerList[layer] = true;
+				}
+			}
+		}
 	}
 
 	public async Task ShowThumbAsync(

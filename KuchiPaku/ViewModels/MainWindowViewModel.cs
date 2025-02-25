@@ -62,7 +62,7 @@ public sealed class MainWindowViewModel
 
 	public bool IsShowPsdLayerSelector { get; set; }
 
-	public bool IsPsdToolMode { get; set; }
+	public bool IsPsdToolMode { get; set; } = true;
 
 	private JObject? CurrentYmmp { get; set; }
 
@@ -151,8 +151,18 @@ public sealed class MainWindowViewModel
 						v.Name ?? "",
 						LipSyncOption.GetDefault(
 							v.Name ?? "",
-							Path.Combine(v.DirectoryPath ?? "", "口") ?? "",
-							v.DefaultMouthImgPath
+							v.TachieType switch
+							{
+								YmmpTachieType.AnimationTachie
+									=> Path.Combine(v.DirectoryPath ?? "", "口") ?? "",
+								YmmpTachieType.PsdTachie
+									 => v.DirectoryPath ?? "",
+								_ => "unknown/path",
+							},
+
+							v.TachieType,
+							imgPath: v.DefaultMouthImgPath,
+							layers: v.EnableLayers
 						)
 					);
 				});
@@ -220,6 +230,7 @@ public sealed class MainWindowViewModel
 					);
 					if (!resultCustom)
 					{
+						Manager.Dismiss(loading);
 						return;
 					}
 
@@ -236,6 +247,7 @@ public sealed class MainWindowViewModel
 					);
 					if (!resultApi)
 					{
+						Manager.Dismiss(loading);
 						return;
 					}
 
@@ -563,7 +575,7 @@ public sealed class MainWindowViewModel
 		}
 
 		var layers = LipSyncSettings[chara!.Name!]
-			.MousePhonemeImagePair.Select(v =>
+			.MousePhonemeLayerPair.Select(v =>
 			{
 				var lineName = v.Key switch
 				{
@@ -585,6 +597,7 @@ public sealed class MainWindowViewModel
 				return new LipSyncLayerViewModel(
 					id: v.Key,
 					name: lineName,
+					characterName: chara!.Name!,
 					mainVM: this,
 					layerTree: clonedTree,
 					psdRect: new System.Drawing.Rectangle(

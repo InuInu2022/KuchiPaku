@@ -161,11 +161,25 @@ public static partial class YmmpUtil
 		);
 	}
 
-	public static async ValueTask<JObject> ReadTachieTemplateAsync()
+	static readonly Dictionary<string, JObject> TachieTemplateCache = [];
+	public static async ValueTask<JObject> ReadTachieTemplateAsync(
+		string type
+	)
 	{
+		var file = type switch
+		{
+			YmmpTachieType.AnimationTachie => @"Template\template.TachieFaceItem.json",
+			YmmpTachieType.PsdTachie => @"Template\template.PsdTachieFaceItem.json",
+			_ => @"Template\template.TachieFaceItem.json",
+		};
+		if (TachieTemplateCache.ContainsKey(file))
+		{
+			return TachieTemplateCache[file];
+		}
+
 		var path = Path.Combine(
 			AppDomain.CurrentDomain.BaseDirectory,
-			@"Template\template.TachieFaceItem.json"
+			file
 		);
 		if (!File.Exists(path))
 		{
@@ -174,8 +188,47 @@ public static partial class YmmpUtil
 
 		var str = await Task
 			.Run(() => File.ReadAllText(path, System.Text.Encoding.UTF8));
-		return JObject.Parse(str);
+		TachieTemplateCache[file] = JObject.Parse(str);
+		return TachieTemplateCache[file];
 	}
+
+	static readonly string[] VOWELS_A = ["a", "A", "aa", "ae", "ah", "ax", "aw", "axr", "ay"];
+	static readonly string[] VOWELS_I = ["i", "I", "ih", "iy", "y"];
+	static readonly string[] VOWELS_U = ["u", "U", "uh", "uw"];
+	static readonly string[] VOWELS_E = ["e", "E", "eh", "ey"];
+	static readonly string[] VOWELS_O = ["o", "O", "ao", "ow", "oy"];
+	static readonly string[] CLOSE_CONSONANT = ["by", "my", "ny", "py", "mm", "nn", "b", "m", "n", "ng", "p", "v"];
+	static readonly string[] OPEN_CONSONANT =
+	[
+		"dy",
+		"gy",
+		"hy",
+		"j",
+		"ky",
+		"ry",
+		"ts",
+		"ty",
+		"ch",
+		"d",
+		"dh",
+		"f",
+		"g",
+		"hh",
+		"jh",
+		"k",
+		"l",
+		"r",
+		"s",
+		"sh",
+		"t",
+		"th",
+		"w",
+		"z",
+		"zh",
+		"tt",
+		"dd",
+	];
+	static readonly string[] LIKE_N = ["N"];
 
 	/// <summary>
 	/// リップシンク（いわゆるあいうえお口パク）用に
@@ -197,7 +250,8 @@ public static partial class YmmpUtil
 		int offsetFrame = 0,
 		bool isLocked = false,
 		int sceneIndex = 0,
-		int visualLeadFrames = 0
+		int visualLeadFrames = 0,
+		string tachieType = ""
 	)
 	{
 		if (lab is null || lab.Lines is null)
@@ -208,60 +262,13 @@ public static partial class YmmpUtil
 		var consoOpt = lipSyncOption.ConsonantOption;
 		var images = lipSyncOption.MousePhonemeImagePair;
 
-		string[] VOWELS_A = { "a", "A", "aa", "ae", "ah", "ax", "aw", "axr", "ay" };
-		string[] VOWELS_I = { "i", "I", "ih", "iy", "y" };
-		string[] VOWELS_U = { "u", "U", "uh", "uw" };
-		string[] VOWELS_E = { "e", "E", "eh", "ey" };
-		string[] VOWELS_O = { "o", "O", "ao", "ow", "oy" };
-		string[] CLOSE_CONSONANT =
-		{
-			"by",
-			"my",
-			"ny",
-			"py",
-			"mm",
-			"nn",
-			"b",
-			"m",
-			"n",
-			"ng",
-			"p",
-			"v",
-		};
-		string[] OPEN_CONSONANT =
-		{
-			"dy",
-			"gy",
-			"hy",
-			"j",
-			"ky",
-			"ry",
-			"ts",
-			"ty",
-			"ch",
-			"d",
-			"dh",
-			"f",
-			"g",
-			"hh",
-			"jh",
-			"k",
-			"l",
-			"r",
-			"s",
-			"sh",
-			"t",
-			"th",
-			"w",
-			"z",
-			"zh",
-			"tt",
-			"dd",
-		};
-		string[] LIKE_N = { "N" };
-
 		var len = lab.Lines.Count();
-		var lastVowel = images["N"];
+		var lastVowel = tachieType switch
+		{
+			YmmpTachieType.AnimationTachie => images["N"],
+			YmmpTachieType.PsdTachie => "N",
+			_ => "",
+		};
 		for (var i = 0; i < len; i++)
 		{
 			var line = lab.Lines.ElementAt(i);
@@ -276,71 +283,6 @@ public static partial class YmmpUtil
 				continue;
 			}
 
-			var imageFileName = "";
-
-			switch (line.Phoneme)
-			{
-				case var p when VOWELS_A.Contains(p):
-					{
-						imageFileName = images["a"];
-						lastVowel = imageFileName;
-						break;
-					}
-
-				case var p when VOWELS_I.Contains(p):
-					{
-						imageFileName = images["i"];
-						lastVowel = imageFileName;
-						break;
-					}
-
-				case var p when VOWELS_U.Contains(p):
-					{
-						imageFileName = images["u"];
-						lastVowel = imageFileName;
-						break;
-					}
-
-				case var p when VOWELS_E.Contains(p):
-					{
-						imageFileName = images["e"];
-						lastVowel = imageFileName;
-						break;
-					}
-
-				case var p when VOWELS_O.Contains(p):
-					{
-						imageFileName = images["o"];
-						lastVowel = imageFileName;
-						break;
-					}
-
-				case var p when CLOSE_CONSONANT.Contains(p):
-					{
-						imageFileName = images["N"];
-						break;
-					}
-
-				case var p when OPEN_CONSONANT.Contains(p):
-					{
-						imageFileName = consoOpt switch
-						{
-							ConsonantOption.CONTINUE_BEFORE_VOWEL => lastVowel,
-							ConsonantOption.SMALL_MOUSE => images["u"], //TODO:代理処理
-							_ => images["N"],
-						};
-						break;
-					}
-
-				default:
-					{
-						imageFileName = images["N"];
-						break;
-					}
-			}
-
-			var mouseImagePath = Path.Combine(lipSyncOption.MouseDir!, imageFileName);
-
 			//deep copy
 			JObject? newItem = await CopyDeepAsync(tmpItem);
 			if (newItem is null)
@@ -349,14 +291,186 @@ public static partial class YmmpUtil
 			//lab line to a new item
 			newItem["Layer"] = insertLayer;
 			newItem["CharacterName"] = lipSyncOption.CharacterName;
-			newItem["TachieFaceParameter"]!["Mouth"] = mouseImagePath;
 			newItem["Frame"] = line.FrameFrom + offsetFrame - visualLeadFrames;
 			newItem["Length"] = line.FrameLen;
 			newItem["IsLocked"] = isLocked;
+			switch (tachieType)
+			{
+				//動く立ち絵
+				case YmmpTachieType.AnimationTachie:
+					newItem["TachieFaceParameter"]!["Mouth"] = GetMouseImagePath(
+						lipSyncOption,
+						consoOpt,
+						images,
+						ref lastVowel,
+						line
+					);
+					break;
+				//PSD立ち絵
+				case YmmpTachieType.PsdTachie:
+					var layers = GetEnableLayers(
+						lipSyncOption,
+						consoOpt,
+						ref lastVowel,
+						line
+					).ToArray();
+					newItem["TachieFaceParameter"]!["EnableLayers"] = new JArray(layers);
+					//PSD file path
+					newItem["TachieFaceParameter"]!["FilePath"] = lipSyncOption.TargetDir;
+					break;
+				default:
+					break;
+			}
 
 			JArray ja = items.ElementAtOrDefault(sceneIndex).Value;
 			ja.Add(newItem);
 		}
+	}
+
+	private static string GetMouseImagePath(
+		LipSyncOption lipSyncOption,
+		ConsonantOption consoOpt,
+		Dictionary<string, string> images,
+		ref string lastVowel,
+		LabLine line)
+	{
+		var imageFileName = "";
+
+		switch (line.Phoneme)
+		{
+			case var p when VOWELS_A.Contains(p):
+				{
+					imageFileName = images["a"];
+					lastVowel = imageFileName;
+					break;
+				}
+
+			case var p when VOWELS_I.Contains(p):
+				{
+					imageFileName = images["i"];
+					lastVowel = imageFileName;
+					break;
+				}
+
+			case var p when VOWELS_U.Contains(p):
+				{
+					imageFileName = images["u"];
+					lastVowel = imageFileName;
+					break;
+				}
+
+			case var p when VOWELS_E.Contains(p):
+				{
+					imageFileName = images["e"];
+					lastVowel = imageFileName;
+					break;
+				}
+
+			case var p when VOWELS_O.Contains(p):
+				{
+					imageFileName = images["o"];
+					lastVowel = imageFileName;
+					break;
+				}
+
+			case var p when CLOSE_CONSONANT.Contains(p):
+				{
+					imageFileName = images["N"];
+					break;
+				}
+
+			case var p when OPEN_CONSONANT.Contains(p):
+				{
+					imageFileName = consoOpt switch
+					{
+						ConsonantOption.CONTINUE_BEFORE_VOWEL => lastVowel,
+						ConsonantOption.SMALL_MOUSE => images["u"], //TODO:代理処理
+						_ => images["N"],
+					};
+					break;
+				}
+
+			default:
+				{
+					imageFileName = images["N"];
+					break;
+				}
+		}
+
+		var mouseImagePath = Path.Combine(lipSyncOption.TargetDir!, imageFileName);
+		return mouseImagePath;
+	}
+
+	static IEnumerable<string> GetEnableLayers(
+		LipSyncOption lipSyncOption,
+		ConsonantOption consoOpt,
+		ref string lastVowel,
+		LabLine line
+	)
+	{
+		IEnumerable<string> layers = [];
+		switch (line.Phoneme)
+		{
+			case var p when VOWELS_A.Contains(p):
+				{
+					layers = lipSyncOption.MousePhonemeLayerPair["a"];
+					lastVowel = "a";
+					break;
+				}
+
+			case var p when VOWELS_I.Contains(p):
+				{
+					layers = lipSyncOption.MousePhonemeLayerPair["i"];
+					lastVowel = "i";
+					break;
+				}
+
+			case var p when VOWELS_U.Contains(p):
+				{
+					layers = lipSyncOption.MousePhonemeLayerPair["u"];
+					lastVowel = "u";
+					break;
+				}
+
+			case var p when VOWELS_E.Contains(p):
+				{
+					layers = lipSyncOption.MousePhonemeLayerPair["e"];
+					lastVowel = "e";
+					break;
+				}
+
+			case var p when VOWELS_O.Contains(p):
+				{
+					layers = lipSyncOption.MousePhonemeLayerPair["o"];
+					lastVowel = "o";
+					break;
+				}
+
+			case var p when CLOSE_CONSONANT.Contains(p):
+				{
+					layers = lipSyncOption.MousePhonemeLayerPair["N"];
+					break;
+				}
+
+			case var p when OPEN_CONSONANT.Contains(p):
+				{
+					layers = consoOpt switch
+					{
+						ConsonantOption.CONTINUE_BEFORE_VOWEL => lipSyncOption.MousePhonemeLayerPair[lastVowel],
+						ConsonantOption.SMALL_MOUSE => lipSyncOption.MousePhonemeLayerPair["u"], //TODO:代理処理
+						_ => lipSyncOption.MousePhonemeLayerPair["N"],
+					};
+					break;
+				}
+
+			default:
+				{
+					layers = lipSyncOption.MousePhonemeLayerPair["N"];
+					break;
+				}
+		}
+
+		return layers;
 	}
 
 	public static async Task<JObject> CopyDeepAsync(JObject tmpItem)
@@ -413,18 +527,21 @@ public static partial class YmmpUtil
 			await lab.ChangeLengthByRateAsync(v.Item.PlaybackRate);
 			var items = GetVoiceItemsByScene(ymmp, tl);
 
+			var settings = lipSyncSettings!;
+			var tachieType = settings[v.Item.CharacterName!].TachieType;
+
 			//(JArray)ymmp!["Timeline"]!["Items"]!;
 			var tachie = new JObject();
 			try
 			{
-				tachie = await ReadTachieTemplateAsync();
+				tachie = await ReadTachieTemplateAsync(tachieType);
 			}
 			catch (System.Exception e)
 			{
 				throw new Exception(e.Message);
 			}
 
-			var set = lipSyncSettings!;
+
 
 			var contentOffset = CulcContentOffset(
 				v.Item.ContentOffset.TotalMilliseconds,
@@ -435,11 +552,12 @@ public static partial class YmmpUtil
 				lab,
 				items,
 				tachie,
-				set[v.Item.CharacterName!]!,
+				settings[v.Item.CharacterName!]!,
 				maxLayer[v.Scene] + 1,
 				v.Item.Frame - contentOffset,
 				sceneIndex: v.Scene,
-				visualLeadFrames: CulcVisualLeadOffset(visualLeadMs, sceneFps)
+				visualLeadFrames: CulcVisualLeadOffset(visualLeadMs, sceneFps),
+				tachieType: tachieType
 			);
 
 			maxLayer[v.Scene]++;
@@ -523,17 +641,20 @@ public static partial class YmmpUtil
 
 			var items = GetVoiceItemsByScene(ymmp, tl);
 
+			var settings = lipSyncSettings!;
+			var tachieType = settings[v.item.Item.CharacterName!].TachieType;
+
 			var tachie = new JObject();
 			try
 			{
-				tachie = await ReadTachieTemplateAsync();
+				tachie = await ReadTachieTemplateAsync(tachieType);
 			}
 			catch (System.Exception e)
 			{
 				throw new Exception(e.Message);
 			}
 
-			var set = lipSyncSettings!;
+
 			var contentOffset = CulcContentOffset(
 				v.item.Item.ContentOffset.TotalMilliseconds,
 				currentYmmpFPS.ElementAtOrDefault(v.item.Scene).Fps
@@ -550,7 +671,7 @@ public static partial class YmmpUtil
 					lab,
 					items,
 					tachie,
-					set[v!.item.Item.CharacterName!]!,
+					settings[v!.item.Item.CharacterName!]!,
 					maxLayer[v.item.Scene] + 1,
 					v.item.Item.Frame - contentOffset,
 					sceneIndex: v.item.Scene,
@@ -559,7 +680,8 @@ public static partial class YmmpUtil
 						currentYmmpFPS
 							.ElementAtOrDefault(v.item.Scene)
 							.Fps
-					)
+					),
+					tachieType: tachieType
 				);
 			}
 			catch (System.Exception e)
