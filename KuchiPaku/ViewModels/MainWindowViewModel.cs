@@ -64,6 +64,8 @@ public sealed class MainWindowViewModel
 
 	public bool IsPsdToolMode { get; set; } = true;
 
+	public bool IsPartsOverrideMode { get; set; }
+
 	private JObject? CurrentYmmp { get; set; }
 
 	private string? CurrentYmmpPath { get; set; }

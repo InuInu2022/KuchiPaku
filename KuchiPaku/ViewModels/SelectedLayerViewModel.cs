@@ -105,12 +105,14 @@ public class SelectedLayerViewModel
 	public Well<System.Windows.Controls.Image> ThumbImageWell { get; } =
 		Well.Factory.Create<System.Windows.Controls.Image>();
 
+	public MainWindowViewModel MainVM { get; init; }
+
 	bool IsSizeZero
 		=> Layer.Image.Width == 0 || Layer.Image.Height == 0;
 
 	bool _isLoaded;
 	bool _isInitialized;
-	MainWindowViewModel MainVM { get; init; }
+
 
 	bool IsOverride()
 	{
