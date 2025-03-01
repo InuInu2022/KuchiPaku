@@ -9,9 +9,13 @@ namespace KuchiPaku.Models;
 public static class YmmpItemType
 {
 	public static readonly string VoiceItem
-        = "YukkuriMovieMaker.Project.Items.VoiceItem, YukkuriMovieMaker";
+		= "YukkuriMovieMaker.Project.Items.VoiceItem, YukkuriMovieMaker";
 	public static readonly string TextItem
-        = "YukkuriMovieMaker.Project.Items.TextItem, YukkuriMovieMaker";
+		= "YukkuriMovieMaker.Project.Items.TextItem, YukkuriMovieMaker";
+	public static readonly string TachieItem
+		= "YukkuriMovieMaker.Project.Items.TachieItem, YukkuriMovieMaker";
+	public static readonly string TachieFaceItem
+		= "YukkuriMovieMaker.Project.Items.TachieFaceItem, YukkuriMovieMaker";
 }
 
 public static class YmmpTachieType
@@ -20,6 +24,18 @@ public static class YmmpTachieType
 		= "YukkuriMovieMaker.Plugin.Tachie.AnimationTachie.AnimationTachiePlugin, YukkuriMovieMaker.Plugin.Tachie.AnimationTachie, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 	public const string PsdTachie
 		= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachiePlugin, YukkuriMovieMaker.Plugin.Tachie.Psd, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+}
+
+public static class YmmpTachieFaceParameterType
+{
+	public static readonly string PsdTachieFace
+		= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter, YukkuriMovieMaker.Plugin.Tachie.Psd";
+}
+
+public static class YmmpTachieItemParameterType
+{
+	public static readonly string PsdTachieItem
+		= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieItemParameter, YukkuriMovieMaker.Plugin.Tachie.Psd";
 }
 
 public static class YmmpVoiceParameterType

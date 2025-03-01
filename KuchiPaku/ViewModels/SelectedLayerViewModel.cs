@@ -174,12 +174,25 @@ public class SelectedLayerViewModel
 	{
 		if (!_isInitialized) return default;
 
-		if (MainVM.SelectedLayers is not null)
+		if (MainVM.SelectedLayers is {} selectedLayers)
 		{
-			MainVM
-				.SelectedLayers
-				.OverrideLayerList
-				.TryAdd(Cid, value);
+			selectedLayers.OverrideLayerList[Cid] = value;
+		}
+
+		if (MainVM is not null &&
+			MainVM.LipSyncSettings.ContainsKey(MainVM.SelectedCharaItem?.Name ?? ""))
+		{
+			var ovPair = MainVM
+				.LipSyncSettings[MainVM.SelectedCharaItem!.Name!]
+				.MousePhonemeOverrideLayerPair;
+
+			var hasPair = ovPair.TryGetValue(MainVM.SelectedLayers!.Id, out _);
+			if (!hasPair)
+			{
+				ovPair[MainVM.SelectedLayers!.Id] = [];
+			}
+			var pairs = ovPair[MainVM.SelectedLayers!.Id];
+			if (pairs is not null) { pairs[Cid] = value; }
 		}
 
 		if (Children.Count == 0) return default;

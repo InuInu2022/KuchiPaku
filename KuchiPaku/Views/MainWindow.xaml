@@ -596,7 +596,6 @@
                   Header="差分上書きモード"
                   Margin="5,0"
                   FontSize="11"
-                  IsEnabled="False"
                   IsOn="{Binding IsPartsOverrideMode}"
                   />
               </ui:SimpleStackPanel>

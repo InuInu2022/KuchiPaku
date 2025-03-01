@@ -81,6 +81,8 @@ public sealed class MainWindowViewModel
 	private string? DebuggerDisplay => ToString();
 	static readonly string[] ExtensionTexts = [".png", ".gif", ",webp"];
 
+	Dictionary<int, SearchTimeline> SearchTimelines { get; set; } = [];
+
 	public MainWindowViewModel()
 	{
 		WindowTitle = AppUtil.GetWindowTitle();
@@ -123,7 +125,7 @@ public sealed class MainWindowViewModel
 			var ymmChara = await YmmpUtil.ParseCharactersAsync(CurrentYmmp);
 			var viewList = ymmChara
 				.Where(v => v.TachieCharacterParameter is not null)
-				.Where(v =>	v.TachieType
+				.Where(v => v.TachieType
 					is YmmpTachieType.AnimationTachie
 					or YmmpTachieType.PsdTachie)
 				.Select(v => new CharacterListViewModel
@@ -217,6 +219,8 @@ public sealed class MainWindowViewModel
 						)
 						.ToList()
 						;
+
+					RecordFaceItemsForSearch(ymmp);
 
 					var maxLayer = YmmpUtil.GetMaxLayer(ymmp);
 					Debug.WriteLine($"MaxLayer: {maxLayer}");
@@ -324,6 +328,25 @@ public sealed class MainWindowViewModel
 		);
 	}
 
+	//PSD立ち絵の立ち絵アイテム・表情アイテム・ボイスアイテムを集めて検索用に記録
+	void RecordFaceItemsForSearch(JObject ymmp)
+	{
+		var fItems = YmmpUtil.ParseFaceWithItems(ymmp);
+		foreach (var item in fItems)
+		{
+			if (!SearchTimelines.TryGetValue(item.Scene, out var timeLine))
+			{
+				timeLine = new(item.Scene);
+				SearchTimelines[item.Scene] = timeLine;
+			}
+			timeLine.Add(item.Item);
+		}
+		foreach (var tl in SearchTimelines)
+		{
+			tl.Value.BuildIndex();
+		}
+	}
+
 	/// <summary>
 	/// カスタムボイスの口パク作成
 	/// </summary>
@@ -358,6 +381,8 @@ public sealed class MainWindowViewModel
 				ymmp,
 				LipSyncSettings,
 				CurrentYmmpSceneFps,
+				SearchTimelines,
+				isPartsOverrideMode: IsPartsOverrideMode,
 				IsEnabledVisualLead ? VisualLeadMs : 0
 			);
 		}
@@ -398,6 +423,8 @@ public sealed class MainWindowViewModel
 				ymmp,
 				LipSyncSettings,
 				CurrentYmmpSceneFps,
+				SearchTimelines,
+				isPartsOverrideMode:IsPartsOverrideMode,
 				visualLeadMs: IsEnabledVisualLead ? VisualLeadMs : 0
 			);
 		}

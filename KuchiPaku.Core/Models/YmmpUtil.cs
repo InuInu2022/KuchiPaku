@@ -99,6 +99,52 @@ public static partial class YmmpUtil
 		);
 	}
 
+	public static IEnumerable<(int Scene, SearchItem Item)>
+	ParseFaceWithItems(JObject ymmp)
+	{
+		var tl = GetYmmpTimeline(ymmp);
+		if (tl is null)
+			return [];
+		var items = GetVoiceItemsByScene(ymmp, tl);
+
+		return items
+			.SelectMany(v => v.Value.Select((v2, i) => (v.Key, Value: v2)))
+			.Where(v => v.Value is not null
+				&& (
+					v.Value["$type"]!.ToString() == YmmpItemType.VoiceItem
+					||
+					v.Value["$type"]!.ToString() == YmmpItemType.TachieItem
+					||
+					v.Value["$type"]!.ToString() == YmmpItemType.TachieFaceItem
+				)
+				&& (
+					v.Value["TachieFaceParameter"]?["$type"]?.ToString() == YmmpTachieFaceParameterType.PsdTachieFace
+					||
+					v.Value["TachieItemParameter"]?["$type"]?.ToString()
+					== YmmpTachieItemParameterType.PsdTachieItem
+				)
+			)
+			.Select(v =>
+			{
+				var param =
+					v.Value["TachieFaceParameter"]
+					?? v.Value["TachieItemParameter"];
+				string[] layers = param?["EnableLayers"]?
+					.ToObject<string[]>() ?? [];
+				return (
+					v.Key,
+					new SearchItem(
+						v.Value["CharacterName"]?.ToString() ?? "",
+						(int)(v.Value["Frame"] ?? 0),
+						(int)(v.Value["Length"] ?? 0),
+						(int)(v.Value["Layer"] ?? 0),
+						layers
+					)
+				);
+			})
+			;
+	}
+
 	/// <summary>
 	/// シーンごとにボイスアイテムを処理する
 	/// </summary>
@@ -251,7 +297,10 @@ public static partial class YmmpUtil
 		bool isLocked = false,
 		int sceneIndex = 0,
 		int visualLeadFrames = 0,
-		string tachieType = ""
+		string tachieType = "",
+		bool isPartsOverrideMode = false,
+		Dictionary<int, SearchTimeline>? searchTimelines = null,
+		YmmVoiceItem? voiceItem = null
 	)
 	{
 		if (lab is null || lab.Lines is null)
@@ -287,6 +336,8 @@ public static partial class YmmpUtil
 			JObject? newItem = await CopyDeepAsync(tmpItem);
 			if (newItem is null)
 				continue;
+
+			OverrideLipSyncExpressions(searchTimelines!, isPartsOverrideMode, sceneIndex, voiceItem!, lipSyncOption, tachieType, offsetFrame,line.FrameFrom);
 
 			//lab line to a new item
 			newItem["Layer"] = insertLayer;
@@ -491,6 +542,8 @@ public static partial class YmmpUtil
 		JObject ymmp,
 		Dictionary<string, LipSyncOption> lipSyncSettings,
 		IEnumerable<(int Scene, int Fps)> currentYmmpFPS,
+		Dictionary<int, SearchTimeline> searchTimelines,
+		bool isPartsOverrideMode = false,
 		int visualLeadMs = 0
 	)
 	{
@@ -541,12 +594,12 @@ public static partial class YmmpUtil
 				throw new Exception(e.Message);
 			}
 
-
-
 			var contentOffset = CulcContentOffset(
 				v.Item.ContentOffset.TotalMilliseconds,
 				sceneFps
 			);
+
+			/*OverrideLipSyncExpressions(searchTimelines, isPartsOverrideMode, v, settings, tachieType, contentOffset);*/
 
 			await MakeRipSyncItemAsync(
 				lab,
@@ -557,7 +610,10 @@ public static partial class YmmpUtil
 				v.Item.Frame - contentOffset,
 				sceneIndex: v.Scene,
 				visualLeadFrames: CulcVisualLeadOffset(visualLeadMs, sceneFps),
-				tachieType: tachieType
+				tachieType: tachieType,
+				isPartsOverrideMode: isPartsOverrideMode,
+				searchTimelines:searchTimelines,
+				voiceItem:v.Item
 			);
 
 			maxLayer[v.Scene]++;
@@ -567,12 +623,147 @@ public static partial class YmmpUtil
 		Debug.WriteLine($"TIME[MakeCustomVoiceFaceItem]:{sw.ElapsedMilliseconds}");
 	}
 
+	/// <summary>
+	/// `isPartsOverrideMode`がtrueのときに差分再現
+	/// </summary>
+	/// <param name="searchTimelines"></param>
+	/// <param name="isPartsOverrideMode"></param>
+	/// <param name="v"></param>
+	/// <param name="settings"></param>
+	/// <param name="tachieType"></param>
+	/// <param name="contentOffset"></param>
+	static void OverrideLipSyncExpressions(
+		Dictionary<int, SearchTimeline> searchTimelines,
+		bool isPartsOverrideMode,
+		int scene,
+		YmmVoiceItem voiceItem,
+		LipSyncOption settings,
+		string tachieType,
+		int contentOffset,
+		int searchFrame
+	)
+	{
+		if (
+			!isPartsOverrideMode
+			|| tachieType != YmmpTachieType.PsdTachie
+			|| !searchTimelines.TryGetValue(scene, out var timeline)
+		)
+		{
+			return;
+		}
+
+		var frame = Math.Max(searchFrame - contentOffset, 0);
+		Debug.WriteLine($"GetItemsAtFrame({frame})");
+		var sItems = timeline
+			.GetItemsAtFrame(frame)
+			.Where(s =>
+				s.CharacterName == voiceItem.CharacterName
+				&& !s.Data.IsEmpty)
+			.OrderByDescending(s => s.Layer)
+			.ToList();
+
+		Debug.WriteLine($"-- front --");
+		sItems.First().Data.ToArray().ToList().ForEach(v => Debug.WriteLine(v));
+		Debug.WriteLine($"-- --");
+
+		if (!sItems.Any())
+			return;
+
+		var overrides = settings.MousePhonemeOverrideLayerPair;
+		var selections = settings.MousePhonemeLayerPair;
+
+		var frontLayers = sItems.First().Data;
+
+		foreach (var item in selections)
+		{
+			var newLayers = new string[frontLayers.Length];
+			frontLayers.CopyTo(newLayers);
+			var newList = newLayers.ToList();
+
+			if (!overrides.TryGetValue(item.Key, out var rides))
+			{
+				//上書き指定レイヤー無いなら上のアイテムと同じ見た目にする
+				selections[item.Key] = newList;
+				continue;
+			}
+
+			var overrideCids = rides
+				.Where(v => v.Value).Select(v => v.Key) ?? [];
+			var layerSelection = selections[item.Key];
+
+			if (overrideCids.Count() == 0)
+			{
+				//上書き指定レイヤー無いなら上のアイテムと同じ見た目にする
+				selections[item.Key] = newList;
+				continue;
+			}
+
+			var visibles = overrideCids.ToDictionary(
+				cid => cid,
+				cid => layerSelection.Contains(cid)
+			);
+
+			newList.RemoveAll(
+				visibles.Where(v => !v.Value).Select(v => v.Key).Contains);
+			foreach (var v2 in visibles)
+			{
+				if (v2.Value)
+				{
+					newList.Add(v2.Key);
+				}
+			}
+			newList = [.. newList.Distinct()];
+			selections[item.Key] = newList;
+
+			newList.ForEach(v => Debug.WriteLine(v));
+		}
+
+		/*
+		foreach (var item2 in overrides)
+		{
+			var newLayers = new string[frontLayers.Length];
+			frontLayers.CopyTo(newLayers);
+			var newList = newLayers.ToList();
+
+			var overrideCids = item2.Value.Where(v => v.Value).Select(v => v.Key);
+			var layerSelection = selections[item2.Key];
+
+			if (overrideCids.Count() == 0)
+			{
+				//上書き指定レイヤー無いなら上のアイテムと同じ見た目にする
+				selections[item2.Key] = newList;
+				continue;
+			}
+
+			var visibles = overrideCids.ToDictionary(
+				cid => cid,
+				cid => layerSelection.Contains(cid)
+			);
+
+			newList.RemoveAll(
+				visibles.Where(v => !v.Value).Select(v => v.Key).Contains);
+			foreach (var v2 in visibles)
+			{
+				if (v2.Value)
+				{
+					newList.Add(v2.Key);
+				}
+			}
+			newList = [.. newList.Distinct()];
+			selections[item2.Key] = newList;
+
+			newList.ForEach(v => Debug.WriteLine(v));
+		}*/
+	}
+
 	public static async ValueTask MakeAPIVoiceFaceItemAsync(
 		IDictionary<int, int> maxLayer,
 		IEnumerable<(int Scene, YmmVoiceItem Item)> voiceItems,
 		JObject ymmp,
 		Dictionary<string, LipSyncOption> lipSyncSettings,
 		IEnumerable<(int Scene, int Fps)> currentYmmpFPS,
+		Dictionary<int, SearchTimeline> searchTimelines,
+		bool isPartsOverrideMode = false,
 		int visualLeadMs = 0
 	)
 	{

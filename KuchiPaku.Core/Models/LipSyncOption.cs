@@ -24,6 +24,14 @@ public class LipSyncOption
 	public Dictionary<string, IEnumerable<string>> MousePhonemeLayerPair { get; set; } = [];
 
 	/// <summary>
+	/// 音素と上書きレイヤーリスト
+	/// "音素文字列":"有効レイヤー名true/falseリスト"
+	/// PSD立ち絵用
+	/// 動く立ち絵と同じ挙動にするオプションを有効化したときのみ使う
+	/// </summary>
+	public Dictionary<string, Dictionary<string, bool>> MousePhonemeOverrideLayerPair { get; set; } = [];
+
+	/// <summary>
 	/// 子音処理オプション
 	/// * 0 - すべて「ん」として処理する
 	/// * 1 - 口を閉じる子音以外は前の母音を引き継ぐ
