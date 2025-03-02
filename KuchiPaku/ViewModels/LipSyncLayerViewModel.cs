@@ -81,9 +81,11 @@ public class LipSyncLayerViewModel
 			layers is not null
 		)
 		{
+			if (!layers.Any()) return;
+
 			VisibleLayerList = VisibleLayerList
-				.Select(v => (v.Key, false))
-				.ToDictionary(v => v.Key, v => v.Item2);
+				.Select(v => (v.Key, Value:false))
+				.ToDictionary(v => v.Key, v => v.Value);
 			foreach (var layer in layers)
 			{
 				if (VisibleLayerList.ContainsKey(layer))
@@ -100,29 +102,26 @@ public class LipSyncLayerViewModel
 	{
 		using var bmp = await PsdUtil
 			.CreateImageFromTreeAsync(LayerTree, PsdWidth, PsdHeight, enabledLayers);
-		var rate = 200.0 / Math.Max(bmp.Width, bmp.Height);
+		var rate = 250.0 / Math.Max(bmp.Width, bmp.Height);
 		var rw = (int)(bmp.Width * rate);
 		var rh = (int)(bmp.Height * rate);
 		var thumb = bmp.GetThumbnailImage(rw, rh, null, IntPtr.Zero);
 		var bitmapImage = ConvertToImageSource(thumb);
 
-		/*
-		var resized = new TransformedBitmap(
-			bitmapImage,
-			//new ScaleTransform(100 / PsdRect.Width, 25 / PsdRect.Height)
-			new ScaleTransform(0.1, 0.1)
-		);
-		*/
+		var noRect = ThumbUtil.GetNoTransRect(bitmapImage.ToBitmap());
+		var noFull = new CroppedBitmap(bitmapImage, new(
+			noRect.X, noRect.Y, noRect.Width, noRect.Height
+		));
 
 		var sourceRect = new Int32Rect(
-			0,
-			(int)bitmapImage.PixelHeight / 10,
-			(int)bitmapImage.PixelWidth,
-			35 //(int)(resized.Height / 4)*3
+			(int)noRect.X,
+			(int)(noFull.PixelHeight * noRect.Width / noRect.Height / 4),
+			(int)noFull.PixelWidth,
+			(int)(noFull.PixelHeight * noRect.Width / noRect.Height * 3 / 5)
 		);
 		var cropped = new CroppedBitmap(bitmapImage, sourceRect);
 
-		FullImageSrc = new WriteableBitmap(bitmapImage);
+		FullImageSrc = new WriteableBitmap(noFull);
 		ImageSrc = new WriteableBitmap(cropped);
 	}
 

@@ -114,7 +114,7 @@ public static class PsdUtil
 			if (layer.IsFolder)
 			{
 				// フォルダの場合、再帰的にその中のレイヤーを走査
-				if (!enabledLayers?.Contains(layer.Cid, StringComparer.Ordinal) ??  false /*!layer.IsVisible*/)
+				if (!enabledLayers?.Contains(layer.Cid, StringComparer.Ordinal) ?? false /*!layer.IsVisible*/)
 				{
 					continue;
 				}
@@ -342,5 +342,39 @@ public static class PsdUtil
 			.OfType<SectionDividerSetting>()
 			.First()
 			.Type;
+	}
+
+	[SuppressMessage("Design", "MA0016:Prefer using collection abstraction instead of implementation", Justification = "<保留中>")]
+	public static Dictionary<string, bool> GetVisibilityFromTree(
+		IEnumerable<YmmPsdLayer>? tree
+	)
+	{
+		if (tree is null) return [];
+
+		var result = new Dictionary<string, bool>(StringComparer.Ordinal);
+
+		void Traverse(YmmPsdLayer layer)
+		{
+			if (!result.TryGetValue(layer.Cid, out bool isVisible))
+			{
+				result[layer.Cid] = layer.IsVisible;
+			}
+			else
+			{
+				result[layer.Cid] = isVisible || layer.IsVisible; // 一つでも true なら true
+			}
+
+			foreach (var child in layer.Children)
+			{
+				Traverse(child);
+			}
+		}
+
+		foreach (var layer in tree)
+		{
+			Traverse(layer);
+		}
+
+		return result;
 	}
 }

@@ -633,7 +633,8 @@ public sealed class MainWindowViewModel
 						0, 0, psd.Header.Width, psd.Header.Height),
 					defaultVisible: defs is not null && defs.Any()
 						? defs.Select(v => (v, true)).ToDictionary()
-						: []
+						: PsdUtil.GetVisibilityFromTree(clonedTree)
+						//PSDのデフォルトを取得
 				)
 				;
 			})

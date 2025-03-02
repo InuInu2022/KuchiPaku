@@ -200,9 +200,6 @@ public static partial class YmmpUtil
 			.Where(v =>
 				!v.Item.IsCustomVoice
 				&& v.Item.VoiceParameter is not null
-				//TODO: support psd tachie
-				&& v.Item.TachieFaceParameter?.Type
-					!= "YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter, YukkuriMovieMaker.Plugin.Tachie.Psd"
 			)
 		);
 	}
@@ -337,7 +334,7 @@ public static partial class YmmpUtil
 			if (newItem is null)
 				continue;
 
-			OverrideLipSyncExpressions(searchTimelines!, isPartsOverrideMode, sceneIndex, voiceItem!, lipSyncOption, tachieType, offsetFrame,line.FrameFrom);
+			OverrideLipSyncExpressions(searchTimelines!, isPartsOverrideMode, sceneIndex, voiceItem!, lipSyncOption, tachieType, offsetFrame,line.FrameFrom + offsetFrame);
 
 			//lab line to a new item
 			newItem["Layer"] = insertLayer;
@@ -652,7 +649,7 @@ public static partial class YmmpUtil
 			return;
 		}
 
-		var frame = Math.Max(searchFrame - contentOffset, 0);
+		var frame = Math.Max(searchFrame, 0);
 		Debug.WriteLine($"GetItemsAtFrame({frame})");
 		var sItems = timeline
 			.GetItemsAtFrame(frame)
@@ -662,12 +659,16 @@ public static partial class YmmpUtil
 			.OrderByDescending(s => s.Layer)
 			.ToList();
 
+		if (!sItems.Any())
+		{
+			return;
+		}
+
 		Debug.WriteLine($"-- front --");
 		sItems.First().Data.ToArray().ToList().ForEach(v => Debug.WriteLine(v));
 		Debug.WriteLine($"-- --");
 
-		if (!sItems.Any())
-			return;
+
 
 		var overrides = settings.MousePhonemeOverrideLayerPair;
 		var selections = settings.MousePhonemeLayerPair;
@@ -717,43 +718,6 @@ public static partial class YmmpUtil
 
 			newList.ForEach(v => Debug.WriteLine(v));
 		}
-
-		/*
-		foreach (var item2 in overrides)
-		{
-			var newLayers = new string[frontLayers.Length];
-			frontLayers.CopyTo(newLayers);
-			var newList = newLayers.ToList();
-
-			var overrideCids = item2.Value.Where(v => v.Value).Select(v => v.Key);
-			var layerSelection = selections[item2.Key];
-
-			if (overrideCids.Count() == 0)
-			{
-				//上書き指定レイヤー無いなら上のアイテムと同じ見た目にする
-				selections[item2.Key] = newList;
-				continue;
-			}
-
-			var visibles = overrideCids.ToDictionary(
-				cid => cid,
-				cid => layerSelection.Contains(cid)
-			);
-
-			newList.RemoveAll(
-				visibles.Where(v => !v.Value).Select(v => v.Key).Contains);
-			foreach (var v2 in visibles)
-			{
-				if (v2.Value)
-				{
-					newList.Add(v2.Key);
-				}
-			}
-			newList = [.. newList.Distinct()];
-			selections[item2.Key] = newList;
-
-			newList.ForEach(v => Debug.WriteLine(v));
-		}*/
 	}
 
 	public static async ValueTask MakeAPIVoiceFaceItemAsync(
@@ -872,7 +836,10 @@ public static partial class YmmpUtil
 							.ElementAtOrDefault(v.item.Scene)
 							.Fps
 					),
-					tachieType: tachieType
+					tachieType: tachieType,
+					isPartsOverrideMode:isPartsOverrideMode,
+					searchTimelines:searchTimelines,
+					voiceItem: v.item.Item
 				);
 			}
 			catch (System.Exception e)
