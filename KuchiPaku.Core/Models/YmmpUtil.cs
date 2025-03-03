@@ -322,8 +322,11 @@ public static partial class YmmpUtil
 				$"Frame[{line.Phoneme}] {line.FrameLen} [{line.FrameFrom}-{line.FrameTo}]({line.From} - {line.To})"
 			);
 
-			if (line.Phoneme == "pau")
+			if (line.Phoneme == "pau" || line.Phoneme == "sil")
+			{
 				continue;
+			}
+
 			if (line.FrameLen <= 0)
 			{
 				continue;
@@ -342,6 +345,7 @@ public static partial class YmmpUtil
 			newItem["Frame"] = line.FrameFrom + offsetFrame - visualLeadFrames;
 			newItem["Length"] = line.FrameLen;
 			newItem["IsLocked"] = isLocked;
+			newItem["Remark"] = line.Phoneme;
 			switch (tachieType)
 			{
 				//動く立ち絵
