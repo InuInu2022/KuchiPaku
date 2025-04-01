@@ -85,7 +85,7 @@ public class LipSyncLayerViewModel
 
 			VisibleLayerList = VisibleLayerList
 				.Select(v => (v.Key, Value:false))
-				.ToDictionary(v => v.Key, v => v.Value);
+				.ToDictionary(v => v.Key, v => v.Value, StringComparer.Ordinal);
 			foreach (var layer in layers)
 			{
 				if (VisibleLayerList.ContainsKey(layer))
@@ -114,10 +114,10 @@ public class LipSyncLayerViewModel
 		));
 
 		var sourceRect = new Int32Rect(
-			(int)noRect.X,
-			(int)(noFull.PixelHeight * noRect.Width / noRect.Height / 4),
-			(int)noFull.PixelWidth,
-			(int)(noFull.PixelHeight * noRect.Width / noRect.Height * 3 / 5)
+			noRect.X,
+			noFull.PixelHeight * noRect.Width / noRect.Height / 4,
+			noFull.PixelWidth,
+			noFull.PixelHeight * noRect.Width / noRect.Height * 3 / 5
 		);
 		var cropped = new CroppedBitmap(bitmapImage, sourceRect);
 
