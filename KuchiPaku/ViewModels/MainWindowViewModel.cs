@@ -15,6 +15,7 @@ using KuchiPaku.Psd;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json.Linq;
 using NLog;
+using KuchiPaku.Core.Models;
 
 namespace KuchiPaku.ViewModels;
 
@@ -24,7 +25,6 @@ public enum Page
 }
 
 [ViewModel]
-[DebuggerDisplay("{DebuggerDisplay,nq}")]
 public sealed class MainWindowViewModel
 {
 	private static readonly Logger logger = LogManager.GetCurrentClassLogger();
@@ -37,8 +37,8 @@ public sealed class MainWindowViewModel
 
 	public CharacterListViewModel? SelectedCharaItem { get; set; }
 
-	public ObservableCollection<LipSyncImageViewModel>? LipSyncImages { get; set; } = [];
-	public ObservableCollection<LipSyncLayerViewModel>? LipSyncLayers { get; set; } = [];
+	public ObservableCollection<LipSyncImageViewModel>? LipSyncImages { get; set; }
+	public ObservableCollection<LipSyncLayerViewModel>? LipSyncLayers { get; set; }
 
 	public LipSyncLayerViewModel? SelectedLayers { get; set; }
 	public ObservableCollection<SelectedLayerViewModel>? SelectedLayerTree { get; set; }
@@ -75,11 +75,8 @@ public sealed class MainWindowViewModel
 
 	IEnumerable<(int Scene, int Fps)> CurrentYmmpSceneFps { get; set; } = [(0,30)];
 
-	public Dictionary<string, LipSyncOption> LipSyncSettings { get; set; } = [];
-
-	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	private string? DebuggerDisplay => ToString();
-	static readonly string[] ExtensionTexts = [".png", ".gif", ",webp"];
+	public Dictionary<string, LipSyncOption> LipSyncSettings { get; set; }
+	static readonly string[] ExtensionTexts = [".png", ".gif", ".webp"];
 
 	Dictionary<int, SearchTimeline> SearchTimelines { get; set; } = [];
 
@@ -92,8 +89,8 @@ public sealed class MainWindowViewModel
 		LipSyncLayers = [];
 		LipSyncSettings = [];
 
-		KuchiPaku.Core.Models.ConfigUtil.LoadConfig();
-		var settings = KuchiPaku.Core.Models.ConfigUtil.Settings;
+		ConfigUtil.LoadConfig();
+		var settings = ConfigUtil.Settings;
 		foreach (var i in settings!.TalkSoftInterfaces!)
 		{
 			Debug.WriteLine($"{i.Type}:{i.DllPath}");
