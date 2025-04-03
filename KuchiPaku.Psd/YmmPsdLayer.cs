@@ -1,4 +1,5 @@
 using PsdParser;
+using PsdParser.AdditionalLayerInformations;
 
 namespace KuchiPaku.Psd;
 
@@ -24,7 +25,11 @@ public record YmmPsdLayer(
 
 	//public bool IsOverrideLayer { get; set; }
 
-	public string Name => Layer.Record.LayerName;
+	public string Name => Layer.Record
+		.AdditionalLayerInformations
+		.OfType<UnicodeLayerName>()
+		.FirstOrDefault()?
+		.Name ?? $"[{Cid}]";
 	public bool IsFolder => Layer.IsFolder();
 	public bool IsFolderOpened => Layer.IsFolderOpened();
 	public bool IsDivider => Layer.IsDivider();
