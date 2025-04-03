@@ -226,7 +226,8 @@ public static class PsdUtil
 				true => layer.IsFolderOpened ? "📂" : "📁",
 				false => "",
 			};
-			Debug.WriteLine($"{indent}{icon}[{layer.Cid}]{layer.Name}");
+			string visible = layer.IsVisible ? "👀" : "";
+			Debug.WriteLine($"{indent}{icon}{visible}[{layer.Cid}]{layer.Name}");
 
 			// 子ノードがある場合は再帰
 			if (layer.Children.Any())
@@ -250,7 +251,12 @@ public static class PsdUtil
 		int index = layers.Count() - 1;
 		foreach (var layer in layers.Reverse())
 		{
-			var node = new YmmPsdLayer($"n{index--}", layer);
+			//layer id がある場合は「iXX」,なければ「nXX」
+			var infos = layer.Record.AdditionalLayerInformations.OfType<LayerID>();
+			var cid = infos.Any()
+				? $"i{infos.First().Id}"
+				: $"n{index--}";
+			var node = new YmmPsdLayer(cid, layer);
 
 			if (node.IsFolder)
 			{

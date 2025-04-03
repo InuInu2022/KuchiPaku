@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+
 using Epoxy;
+
 using KuchiPaku.Psd;
 
 namespace KuchiPaku.ViewModels;
@@ -27,7 +29,7 @@ public class SelectedLayerViewModel
 		MainVM = vm;
 		IsFolderOpened = IsOpen();
 		IsOverrideDefaultVisibility = IsOverride();
-		IsVisible = IsLayerVisible(); //layer.IsVisible;
+		IsVisible = IsLayerVisible();
 
 		IsPsdToolRadioOption = layer.Name.StartsWith('*');
 		IsPsdToolForceDisplay = layer.Name.StartsWith('!');
@@ -48,7 +50,7 @@ public class SelectedLayerViewModel
 					var rh = (int)(bmp.Height * rate);
 					var thumb = bmp.GetThumbnailImage(rw, rh, null, IntPtr.Zero);
 
-					using var memoryStream = new MemoryStream();
+					await using var memoryStream = new MemoryStream();
 					thumb.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
 					memoryStream.Seek(0, SeekOrigin.Begin);
 
@@ -134,11 +136,10 @@ public class SelectedLayerViewModel
 
 	[PropertyChanged(nameof(IsVisible))]
 	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsVisibleChangedAsync(bool value)
+	private async ValueTask IsVisibleChangedAsync(bool value)
 	{
-		if (!_isLoaded) return default;
+		if (!_isLoaded) return;
 
-		//Layer.IsVisible = value;
 		Debug.WriteLine($"Layer {Name} [{Cid}].IsVisible : {value}");
 		//レイヤーの表示・非表示はPSDデータに反映ではなく別管理に
 		if (MainVM.SelectedLayers is not null)
@@ -150,7 +151,11 @@ public class SelectedLayerViewModel
 		var list = MainVM.SelectedLayers?.VisibleLayerList
 			.Where(x => x.Value)
 			.Select(x => x.Key) ?? [];
-		MainVM?.SelectedLayers?.ShowThumbAsync(list);
+		if (MainVM.SelectedLayers is not null)
+		{
+			await MainVM.SelectedLayers
+				.ShowThumbAsync(list);
+		}
 
 		if (MainVM is not null &&
 			MainVM.LipSyncSettings.ContainsKey(MainVM.SelectedCharaItem?.Name ?? ""))
@@ -164,8 +169,6 @@ public class SelectedLayerViewModel
 				pair[MainVM.SelectedLayers.Id] = list;
 			}
 		}
-
-		return default;
 	}
 
 	[PropertyChanged(nameof(IsOverrideDefaultVisibility))]
@@ -196,7 +199,7 @@ public class SelectedLayerViewModel
 		}
 
 		if (Children.Count == 0) return default;
-		foreach (var child in Children)
+		foreach (ref var child in CollectionsMarshal.AsSpan(Children))
 		{
 			child.IsOverrideDefaultVisibility = value;
 		}
@@ -217,7 +220,6 @@ public class SelectedLayerViewModel
 				.SelectedLayers
 				.FolderOpenedList
 				.TryAdd(Cid, value);
-			;
 		}
 
 		return default;

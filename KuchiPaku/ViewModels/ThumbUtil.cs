@@ -12,11 +12,12 @@ public static class ThumbUtil{
 
 	/// <summary>
 	/// 透明でないピクセルの上、下、左、右(y0, y1, x0, x1)の座標を検出し、
-	/// Rectangleオブジェクトを返すメソッド
+	/// Rectangleオブジェクトを返すメソッド。
+	/// 不透明ピクセルが見つからない場合や、不正な矩形になる場合は元の画像サイズを返します。
 	/// </summary>
-	/// <param name="bmp"></param>
+	/// <param name="bmp">対象の画像</param>
 	/// <see cref="https://qiita.com/takutoy/items/b123dde5a699f65917b4"/>
-	/// <returns></returns>
+	/// <returns>不透明ピクセルを含む最小の矩形、または元の画像サイズの矩形</returns>
 	public static Rectangle GetNoTransRect(Bitmap bmp)
 	{
 		// 画像のピクセルを byte[] にコピーする
@@ -33,13 +34,17 @@ public static class ThumbUtil{
 		int y1 = 0;
 
 		// 透明でないピクセルを探す
+		bool foundNonTransparent = false;
 		for (int i = 3; i < rgbValues.Length; i += 4)
 		{
 			// Aの値が0なら透明ピクセル
 			if (rgbValues[i] != 0)
 			{
-				int x = i / 4 % bmp.Width;
-				int y = i / 4 / bmp.Width;
+				foundNonTransparent = true;
+				// ピクセルインデックスを計算
+				int pixelIndex = i / 4;
+				int x = pixelIndex % bmp.Width;
+				int y = pixelIndex / bmp.Width;
 
 				if (x0 > x) x0 = x;
 				if (y0 > y) y0 = y;
@@ -48,7 +53,17 @@ public static class ThumbUtil{
 			}
 		}
 
-		return new Rectangle(x0, y0, x1 - x0, y1 - y0);
+		// 不透明ピクセルが見つからなかった場合、または幅/高さが0以下の場合は元のサイズを返す
+		if (!foundNonTransparent || x1 < x0 || y1 < y0)
+		{
+			return new Rectangle(0, 0, bmp.Width, bmp.Height);
+		}
+
+		// 境界を含むために +1 する（x0,y0からx1,y1までの範囲）
+		int width = x1 - x0 + 1;
+		int height = y1 - y0 + 1;
+
+		return new Rectangle(x0, y0, width, height);
 	}
 
 	public static Bitmap ToBitmap(this BitmapImage bmpImg){
