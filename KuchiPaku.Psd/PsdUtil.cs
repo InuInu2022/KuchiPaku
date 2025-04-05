@@ -109,44 +109,63 @@ public static class PsdUtil
 		IEnumerable<string>? enabledLayers
 	)
 	{
+		// PSDレイヤーを描画順にフラットなリストとして収集する
+		var flattenedLayers = FlattenLayersInDrawOrder(layers).ToList();
+
+		// レイヤーを一度に処理する（最下層から最上層へ）
+		foreach (var layer in flattenedLayers)
+		{
+			if (layer.IsFolder) continue; // フォルダはスキップ
+
+			if (layer.Image.Width == 0 || layer.Image.Height == 0) continue;
+
+			// レイヤーが有効かチェック
+			if (!enabledLayers?.Contains(layer.Cid, StringComparer.Ordinal) ?? false)
+			{
+				continue;
+			}
+
+			// レイヤーの描画処理
+			var pixelData = await ReadImageAsync(layer).ConfigureAwait(false);
+
+			// すべてのピクセルが透明の場合は再読み込みを試みる
+			if (pixelData.All(p => p == 0))
+			{
+				pixelData = await ReadImageAsync(layer).ConfigureAwait(false);
+
+				// デバッグ情報の追加
+				Debug.WriteLine($"Re-reading layer {layer.Name}: All pixels transparent after retry? {pixelData.All(p => p == 0)}");
+			}
+
+			using var layerBitmap = CreateBitmapFromPixelData(
+				pixelData,
+				layer.Image.Width,
+				layer.Image.Height
+			);
+
+			// レイヤーのビットマップを合成
+			g.DrawImage(layerBitmap, layer.Record.Left, layer.Record.Top);
+		}
+	}
+
+	// レイヤーを描画順（下から上）にフラット化する
+	static IEnumerable<YmmPsdLayer> FlattenLayersInDrawOrder(IEnumerable<YmmPsdLayer> layers)
+	{
+		// PSDでは下から上に描画するため、逆順にする
 		foreach (var layer in layers.Reverse())
 		{
-			if (layer.IsFolder)
+			if (layer.IsFolder && layer.Children.Any())
 			{
-				// フォルダの場合、再帰的にその中のレイヤーを走査
-				if (!enabledLayers?.Contains(layer.Cid, StringComparer.Ordinal) ?? false /*!layer.IsVisible*/)
+				// フォルダ内のレイヤーを先に処理
+				foreach (var childLayer in FlattenLayersInDrawOrder(layer.Children))
 				{
-					continue;
+					yield return childLayer;
 				}
-				await CombineLayerRecursiveAsync(layer.Children.Reverse(), g, enabledLayers)
-					.ConfigureAwait(false);
 			}
-			else if (layer.IsNormalLayer)
-			{
-				if (layer.Image.Width == 0 || layer.Image.Height == 0)
-				{
-					continue;
-				}
 
-				if (!enabledLayers?.Contains(layer.Cid, StringComparer.Ordinal) ?? false /*!layer.IsVisible*/)
-				{
-					continue;
-				}
-
-				// 通常レイヤーの場合、ビットマップを取得して合成
-				var pixelData = await ReadImageAsync(layer)
-					.ConfigureAwait(false); // Pixelデータ取得
-				using var layerBitmap = CreateBitmapFromPixelData(
-					pixelData,
-					layer.Image.Width,
-					layer.Image.Height
-				);
-
-				//layer.Record.
-
-				// レイヤーのビットマップを合成（上書き）
-				g.DrawImage(layerBitmap, layer.Record.Left, layer.Record.Top);
-			}
+			// フォルダも含めてすべてのレイヤーを返す
+			// （後でフィルタリングするため）
+			yield return layer;
 		}
 	}
 
