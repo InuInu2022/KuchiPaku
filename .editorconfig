@@ -187,6 +187,10 @@ csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
 #### Naming styles ####
+
+# MA0004: Use Task.ConfigureAwait
+dotnet_diagnostic.MA0004.severity = suggestion
+
 [*.{cs,vb}]
 
 # Naming rules
