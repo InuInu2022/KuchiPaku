@@ -35,6 +35,8 @@ public class LipSyncLayerViewModel
 	public Well<System.Windows.Controls.Image> ThumbImageWell { get; }
 		= Well.Factory.Create<System.Windows.Controls.Image>();
 
+	public bool IsLoading { get; set; }
+
 	Rectangle PsdRect { get; set; }
 	int PsdWidth { get; init; }
 	int PsdHeight { get; init; }
@@ -64,10 +66,11 @@ public class LipSyncLayerViewModel
 		ThumbImageWell.Add("Loaded", async () =>
 		{
 			if (ImageSrc is not null) return;
-			var w = PsdRect.Width;
-			var h = PsdRect.Height;
+			IsLoading = true;
+
 			await ShowThumbAsync(VisibleLayerList.Where(v => v.Value).Select(v => v.Key));
-			//ShowLayer();
+
+			IsLoading = false;
 		});
 	}
 
