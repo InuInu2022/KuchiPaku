@@ -377,13 +377,34 @@
                       BorderThickness="1"
                       Visibility="{c:Binding IsShowPsdLayerSelector}"
                       >
-                      <Image
-                        Width="{Binding ActualWidth, ElementName=previewPsd}"
-                        MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
-                        epoxy:Fountain.Well="{Binding ThumbImageWell}"
-                        Source="{Binding SelectedLayers.FullImageSrc}"
-                        Stretch="Uniform"
-                        />
+                      <Grid>
+                        <!-- loader -->
+                        <ProgressBar
+                          x:Name="ImageProgressBar"
+                          Height="20"
+                          Visibility="{c:Binding IsLoading}"
+                          IsIndeterminate="True"
+                          Minimum="0"
+                          Maximum="100"
+                          Margin="5" />
+                        <TextBlock
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          FontSize="20"
+                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                          Text="{Binding SelectedLayers.Name}"
+                          Visibility="{c:Binding !IsLoading}"
+                          />
+                        <!-- thumb image -->
+                        <Image
+                          Width="{Binding ActualWidth, ElementName=previewPsd}"
+                          Visibility="{c:Binding IsLoading}"
+                          MaxHeight="{Binding ActualHeight, ElementName=centerPanel}"
+                          epoxy:Fountain.Well="{Binding ThumbImageWell}"
+                          Source="{Binding SelectedLayers.FullImageSrc}"
+                          Stretch="Uniform"
+                          />
+                      </Grid>
                     </Border>
                   </ui:SimpleStackPanel>
 
