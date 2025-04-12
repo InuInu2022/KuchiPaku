@@ -89,13 +89,11 @@ public class LipSyncLayerViewModel
 			VisibleLayerList = VisibleLayerList
 				.Select(v => (v.Key, Value:false))
 				.ToDictionary(v => v.Key, v => v.Value, StringComparer.Ordinal);
-			foreach (var layer in layers)
-			{
-				if (VisibleLayerList.ContainsKey(layer))
-				{
-					VisibleLayerList[layer] = true;
-				}
-			}
+
+			layers
+				.Where(layer => VisibleLayerList.ContainsKey(layer))
+				.ToList()
+				.ForEach(layer => VisibleLayerList[layer] = true);
 		}
 	}
 

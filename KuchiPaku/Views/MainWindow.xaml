@@ -307,6 +307,7 @@
                       SelectedItem="{Binding SelectedLayers}"
                       VirtualizingStackPanel.IsVirtualizing="True"
                       Visibility="{c:Binding IsShowPsdLayerSelector}"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                       >
 
                       <ListView.ItemTemplate>
@@ -379,14 +380,6 @@
                       >
                       <Grid>
                         <!-- loader -->
-                        <ProgressBar
-                          x:Name="ImageProgressBar"
-                          Height="20"
-                          Visibility="{c:Binding IsLoading}"
-                          IsIndeterminate="True"
-                          Minimum="0"
-                          Maximum="100"
-                          Margin="5" />
                         <TextBlock
                           HorizontalAlignment="Center"
                           VerticalAlignment="Center"
