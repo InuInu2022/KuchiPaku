@@ -67,10 +67,12 @@ public class LipSyncLayerViewModel
 		{
 			if (ImageSrc is not null) return;
 			IsLoading = true;
+			var st = Stopwatch.StartNew();
 
 			await ShowThumbAsync(VisibleLayerList.Where(v => v.Value).Select(v => v.Key));
 
 			IsLoading = false;
+			st.Stop();
 		});
 	}
 
@@ -101,12 +103,14 @@ public class LipSyncLayerViewModel
 		IEnumerable<string> enabledLayers
 	)
 	{
+		var st = Stopwatch.StartNew();
+
 		using var bmp = await PsdUtil
 			.CreateImageFromTreeAsync(LayerTree, PsdWidth, PsdHeight, enabledLayers);
 		var rate = 250.0 / Math.Max(bmp.Width, bmp.Height);
 		var rw = (int)(bmp.Width * rate);
 		var rh = (int)(bmp.Height * rate);
-		var thumb = bmp.GetThumbnailImage(rw, rh, null, IntPtr.Zero);
+		using var thumb = bmp.GetThumbnailImage(rw, rh, null, IntPtr.Zero);
 		var bitmapImage = ConvertToImageSource(thumb);
 
 		var noRect = ThumbUtil.GetNoTransRect(bitmapImage.ToBitmap());
