@@ -91,19 +91,29 @@ public static class PsdUtil
 		_perfTimer.Restart();
 		progress?.Report(0);
 
-		// まず低解像度版を素早く生成
+		// まず出力用ビットマップを生成
 		var finalBitmap = new Bitmap(width, height);
-		var enabledLayerSet =
-			enabledLayers?.ToHashSet(StringComparer.Ordinal)
-			?? new HashSet<string>(StringComparer.Ordinal);
+
+		// 表示するレイヤーのIDセットを作成
+		var enabledLayerSet = enabledLayers?.ToHashSet(StringComparer.Ordinal)
+							?? new HashSet<string>(StringComparer.Ordinal);
+
+		// 表示可能なレイヤー（親フォルダの状態も考慮）を計算
+		var visibleLayerSet = new HashSet<string>(StringComparer.Ordinal);
+
+		// 親フォルダーの状態を考慮したレイヤーの可視性を計算
+		CalculateLayerVisibility(tree, enabledLayerSet, visibleLayerSet, true);
 
 		// フラット化したレイヤー一覧を取得（描画対象のみ）
 		var relevantLayers = FlattenLayersInDrawOrder(tree)
 			.Where(layer =>
+				// フォルダではなく
 				!layer.IsFolder
+				// サイズが有効で
 				&& layer.Image.Width > 0
 				&& layer.Image.Height > 0
-				&& (enabledLayerSet.Count == 0 || enabledLayerSet.Contains(layer.Cid))
+				// 可視性計算の結果、表示されるレイヤーのみを対象とする
+				&& visibleLayerSet.Contains(layer.Cid)
 			)
 			.ToList();
 
@@ -112,10 +122,18 @@ public static class PsdUtil
 
 		Debug.WriteLine($"Processing {totalLayers} layers for image generation");
 
+			// レイヤーが存在しない場合は空の画像を返す
+		if (totalLayers == 0)
+		{
+			progress?.Report(100);
+			return finalBitmap;
+		}
+
 		// 並列処理のために各レイヤーの処理をタスクとして用意
 		var layerTasks = relevantLayers.ConvertAll(async layer =>
 		{
-			string cacheKey = $"{layer.Cid}_{layer.IsVisible}";
+			// レイヤーIDのみでキャッシュキーを生成（IsVisibleは使わない）
+			string cacheKey = layer.Cid;
 
 			// キャッシュからの取得または新規作成を一元化
 			Bitmap layerBitmap = await GetOrCreateBitmapAsync(
@@ -155,6 +173,51 @@ public static class PsdUtil
 		progress?.Report(100);
 
 		return finalBitmap;
+	}
+
+	/// <summary>
+	/// 親フォルダーの状態を考慮したレイヤーの可視性を計算する
+	/// </summary>
+	/// <param name="layers">処理するレイヤーツリー</param>
+	/// <param name="enabledLayerSet">enabledLayersのセット</param>
+	/// <param name="visibleLayerSet">表示可能なレイヤーのIDを格納するセット</param>
+	/// <param name="parentEnabled">親フォルダが表示可能かどうか</param>
+	private static void CalculateLayerVisibility(
+		IEnumerable<YmmPsdLayer> layers,
+		HashSet<string> enabledLayerSet,
+		HashSet<string> visibleLayerSet,
+		bool parentEnabled)
+	{
+		foreach (var layer in layers)
+		{
+			// このレイヤー自体がenabledLayerSetに含まれているか
+			bool isSelfEnabled = enabledLayerSet.Contains(layer.Cid);
+
+			// このレイヤーが表示されるかどうか
+			// - 親フォルダが表示され、かつ
+			// - このレイヤー自身がenabledLayerSetに含まれている
+			bool isLayerEnabled = parentEnabled && isSelfEnabled;
+
+			// フォルダの場合、表示条件が満たされていれば子レイヤーにも伝搬
+			bool childrenEnabled = isLayerEnabled;
+
+			// このレイヤーが表示される場合はvisibleLayerSetに追加
+			if (isLayerEnabled)
+			{
+				visibleLayerSet.Add(layer.Cid);
+			}
+
+			// 子レイヤーがある場合は再帰的に処理
+			if (layer.Children.Any())
+			{
+				CalculateLayerVisibility(
+					layer.Children,
+					enabledLayerSet,
+					visibleLayerSet,
+					childrenEnabled
+				);
+			}
+		}
 	}
 
 	/// <summary>
