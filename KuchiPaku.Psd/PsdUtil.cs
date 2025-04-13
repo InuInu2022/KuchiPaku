@@ -23,13 +23,18 @@ public static class PsdUtil
 	private static readonly Stopwatch _perfTimer = new();
 
 	//ピクセルデータをキャッシュする
-	private static readonly ConcurrentDictionary<string, (byte[] PixelData, int Width, int Height, DateTime LastAccess)>
-	    _pixelDataCache = new(StringComparer.Ordinal);
+	private static readonly ConcurrentDictionary<
+		string,
+		(byte[] PixelData, int Width, int Height, DateTime LastAccess)
+	> _pixelDataCache = new(StringComparer.Ordinal);
 
 	// キャッシュクリーンアップ用
 	private static DateTime _lastCacheCleanup = DateTime.UtcNow;
 	private static readonly TimeSpan _cacheCleanupInterval = TimeSpan.FromMinutes(5);
 	private static readonly TimeSpan _cacheEntryMaxAge = TimeSpan.FromMinutes(30);
+
+	// 既存のlock用のSemaphoreSlimとは別に、レイヤー結果用のものを追加
+	private static readonly SemaphoreSlim _resultLock = new(1, 1);
 
 	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
 	public static async ValueTask<PsdFile> LoadPsdAsync(string path)
@@ -95,8 +100,9 @@ public static class PsdUtil
 		var finalBitmap = new Bitmap(width, height);
 
 		// 表示するレイヤーのIDセットを作成
-		var enabledLayerSet = enabledLayers?.ToHashSet(StringComparer.Ordinal)
-							?? new HashSet<string>(StringComparer.Ordinal);
+		var enabledLayerSet =
+			enabledLayers?.ToHashSet(StringComparer.Ordinal)
+			?? new HashSet<string>(StringComparer.Ordinal);
 
 		// 表示可能なレイヤー（親フォルダの状態も考慮）を計算
 		var visibleLayerSet = new HashSet<string>(StringComparer.Ordinal);
@@ -122,49 +128,63 @@ public static class PsdUtil
 
 		Debug.WriteLine($"Processing {totalLayers} layers for image generation");
 
-			// レイヤーが存在しない場合は空の画像を返す
+		// レイヤーが存在しない場合は空の画像を返す
 		if (totalLayers == 0)
 		{
 			progress?.Report(100);
 			return finalBitmap;
 		}
 
-		// 並列処理のために各レイヤーの処理をタスクとして用意
-		var layerTasks = relevantLayers.ConvertAll(async layer =>
-		{
-			// レイヤーIDのみでキャッシュキーを生成（IsVisibleは使わない）
-			string cacheKey = layer.Cid;
+		// 並列読み込みと描画の分離
+		// 1. まず全てのタスクを並列実行
+		var layerResults = new List<(YmmPsdLayer Layer, Bitmap Bitmap)>(totalLayers);
+		await Parallel.ForEachAsync(
+			relevantLayers,
+			new ParallelOptions
+			{
+				MaxDegreeOfParallelism = Environment.ProcessorCount,
+			},
+			async (layer, ct) =>
+			{
+				string cacheKey = layer.Cid;
+				var layerBitmap = await GetOrCreateBitmapAsync(cacheKey, layer, ReadImageAsync);
 
-			// キャッシュからの取得または新規作成を一元化
-			Bitmap layerBitmap = await GetOrCreateBitmapAsync(
-				cacheKey,
-				layer,
-				ReadImageAsync
-			);
+				// ロックの取得を試みる（非同期版）
+				await _resultLock.WaitAsync(ct).ConfigureAwait(false);
+				try
+				{
+					layerResults.Add((layer, layerBitmap));
 
-			return (layer, layerBitmap);
-		});
+					// 進捗を更新
+					processedLayers++;
+					int progressValue = (int)((float)processedLayers / totalLayers * 100);
+					progress?.Report(progressValue);
+				}
+				finally
+				{
+					// 必ず解放する
+					_resultLock.Release();
+				}
+			}
+		);
 
-		// Graphics オブジェクトを作成
+		// 2. 描画順にソートして描画（PSDでは下から上に描画）
+		var orderedResults = layerResults
+			.OrderBy(item => relevantLayers.IndexOf(item.Layer))
+			.ToList();
+
+		// 3. Graphics オブジェクトを使った描画
 		using (Graphics g = Graphics.FromImage(finalBitmap))
 		{
-			// 背景を透明に設定
 			g.Clear(System.Drawing.Color.Transparent);
 			g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
 
-			// 並列読み込みを開始し、結果が届き次第描画（描画自体は順序を維持）
-			foreach (var layerTask in layerTasks)
+			foreach (var (layer, bitmap) in orderedResults)
 			{
-				var (layer, layerBitmap) = await layerTask.ConfigureAwait(false);
-				using (layerBitmap) // 使用後にビットマップを破棄
+				using (bitmap) // 使用後にビットマップを破棄
 				{
-					g.DrawImage(layerBitmap, layer.Record.Left, layer.Record.Top);
+					g.DrawImage(bitmap, layer.Record.Left, layer.Record.Top);
 				}
-
-				// 進捗を更新
-				processedLayers++;
-				int progressValue = (int)((float)processedLayers / totalLayers * 100);
-				progress?.Report(progressValue);
 			}
 		}
 
@@ -186,7 +206,8 @@ public static class PsdUtil
 		IEnumerable<YmmPsdLayer> layers,
 		HashSet<string> enabledLayerSet,
 		HashSet<string> visibleLayerSet,
-		bool parentEnabled)
+		bool parentEnabled
+	)
 	{
 		foreach (var layer in layers)
 		{
@@ -694,86 +715,87 @@ public static class PsdUtil
 
 	// キャッシュからのBitmap取得または生成
 	private static async Task<Bitmap> GetOrCreateBitmapAsync(
-	    string cacheKey,
-	    YmmPsdLayer layer,
-	    Func<YmmPsdLayer, Task<byte[]>> pixelDataProvider)
+		string cacheKey,
+		YmmPsdLayer layer,
+		Func<YmmPsdLayer, Task<byte[]>> pixelDataProvider
+	)
 	{
-	    // キャッシュクリーンアップチェック
-	    CleanupCacheIfNeeded();
+		// キャッシュクリーンアップチェック
+		CleanupCacheIfNeeded();
 
-	    // キャッシュを確認
-	    if (_pixelDataCache.TryGetValue(cacheKey, out var cachedData))
-	    {
-	        try
-	        {
-	            // キャッシュヒット - 最終アクセス日時を更新
-	            _pixelDataCache[cacheKey] = (
-	                cachedData.PixelData,
-	                cachedData.Width,
-	                cachedData.Height,
-	                DateTime.UtcNow
-	            );
+		// キャッシュを確認
+		if (_pixelDataCache.TryGetValue(cacheKey, out var cachedData))
+		{
+			try
+			{
+				// キャッシュヒット - 最終アクセス日時を更新
+				_pixelDataCache[cacheKey] = (
+					cachedData.PixelData,
+					cachedData.Width,
+					cachedData.Height,
+					DateTime.UtcNow
+				);
 
-	            // 新しいBitmapを作成（他のスレッドとの共有なし）
-	            return CreateBitmapFromPixelData(
-	                cachedData.PixelData,
-	                cachedData.Width,
-	                cachedData.Height);
-	        }
-	        catch (Exception ex)
-	        {
-	            Debug.WriteLine($"Error creating bitmap from cached data: {ex.Message}");
-	            // キャッシュから削除し再読み込み
-	            _pixelDataCache.TryRemove(cacheKey, out _);
-	        }
-	    }
+				// 新しいBitmapを作成（他のスレッドとの共有なし）
+				return CreateBitmapFromPixelData(
+					cachedData.PixelData,
+					cachedData.Width,
+					cachedData.Height
+				);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error creating bitmap from cached data: {ex.Message}");
+				// キャッシュから削除し再読み込み
+				_pixelDataCache.TryRemove(cacheKey, out _);
+			}
+		}
 
-	    // キャッシュにない場合は新たに読み込み
-	    var pixelData = await pixelDataProvider(layer).ConfigureAwait(false);
+		// キャッシュにない場合は新たに読み込み
+		var pixelData = await pixelDataProvider(layer).ConfigureAwait(false);
 
-	    // すべてのピクセルが透明の場合は再読み込みを試みる
-	    if (pixelData.All(p => p == 0))
-	    {
-	        Debug.WriteLine($"Layer {layer.Name} is completely transparent, retrying...");
-	        pixelData = await pixelDataProvider(layer).ConfigureAwait(false);
-	    }
+		// すべてのピクセルが透明の場合は再読み込みを試みる
+		if (pixelData.All(p => p == 0))
+		{
+			Debug.WriteLine($"Layer {layer.Name} is completely transparent, retrying...");
+			pixelData = await pixelDataProvider(layer).ConfigureAwait(false);
+		}
 
-	    // キャッシュに保存
-	    _pixelDataCache[cacheKey] = (
-	        pixelData,
-	        layer.Image.Width,
-	        layer.Image.Height,
-	        DateTime.UtcNow
-	    );
+		// キャッシュに保存
+		_pixelDataCache[cacheKey] = (
+			pixelData,
+			layer.Image.Width,
+			layer.Image.Height,
+			DateTime.UtcNow
+		);
 
-	    // 新しいBitmapを作成
-	    return CreateBitmapFromPixelData(
-	        pixelData,
-	        layer.Image.Width,
-	        layer.Image.Height);
+		// 新しいBitmapを作成
+		return CreateBitmapFromPixelData(pixelData, layer.Image.Width, layer.Image.Height);
 	}
 
 	// キャッシュクリーンアップ処理
 	private static void CleanupCacheIfNeeded()
 	{
-	    var now = DateTime.UtcNow;
-	    if (now - _lastCacheCleanup < _cacheCleanupInterval)
-	        return;
+		var now = DateTime.UtcNow;
+		if (now - _lastCacheCleanup < _cacheCleanupInterval)
+			return;
 
-	    _lastCacheCleanup = now;
+		_lastCacheCleanup = now;
 
-	    // 古いエントリを削除
-	    var keysToRemove = _pixelDataCache
-	        .Where(kvp => now - kvp.Value.LastAccess > _cacheEntryMaxAge)
-	        .Select(kvp => kvp.Key)
-	        .ToList();
+		// 古いエントリを削除
+		var keysToRemove = _pixelDataCache
+			.Where(kvp => now - kvp.Value.LastAccess > _cacheEntryMaxAge)
+			.Select(kvp => kvp.Key)
+			.ToList();
 
-	    foreach (var key in keysToRemove)
-	    {
-	        _pixelDataCache.TryRemove(key, out _);
-	        Debug.WriteLine($"Removed expired cache entry: {key}");
-	    }
+		foreach (var key in keysToRemove)
+		{
+			_pixelDataCache.TryRemove(key, out _);
+			Debug.WriteLine($"Removed expired cache entry: {key}");
+		}
 
-	    Debug.WriteLine($"Cache cleanup: removed {keysToRemove.Count} entries, {_pixelDataCache.Count} remaining");
+		Debug.WriteLine(
+			$"Cache cleanup: removed {keysToRemove.Count} entries, {_pixelDataCache.Count} remaining"
+		);
 	}
 }
