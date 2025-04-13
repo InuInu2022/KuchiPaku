@@ -153,8 +153,10 @@ public class SelectedLayerViewModel
 			.Select(x => x.Key) ?? [];
 		if (MainVM.SelectedLayers is not null)
 		{
+			MainVM.SelectedLayers.IsLoading = true;
 			await MainVM.SelectedLayers
 				.ShowThumbAsync(list);
+			MainVM.SelectedLayers.IsLoading = false;
 		}
 
 		if (MainVM is not null &&
