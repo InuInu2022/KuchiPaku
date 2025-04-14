@@ -66,6 +66,8 @@ public sealed class MainWindowViewModel
 
 	public bool IsPartsOverrideMode { get; set; }
 
+	public bool IsFileLoading { get; set; }
+
 	private JObject? CurrentYmmp { get; set; }
 
 	private string? CurrentYmmpPath { get; set; }
@@ -138,8 +140,8 @@ public sealed class MainWindowViewModel
 					},
 					DefaultMouthImgPath = v.TachieDefaultItemParameter.Mouth,
 					TachieType = v.TachieType,
-					EnableLayers = v.TachieType == YmmpTachieType.PsdTachie
-						? v.TachieDefaultItemParameter.EnableLayers
+					EnableLayers = string.Equals(v.TachieType, YmmpTachieType.PsdTachie
+, StringComparison.Ordinal) ? v.TachieDefaultItemParameter.EnableLayers
 						: [],
 				});
 
@@ -211,8 +213,8 @@ public sealed class MainWindowViewModel
 					loading.Message = "出力対象のフィルタ…";
 					var vItems = voiceItems
 						.Where(v =>
-							Characters.Any(c => c.Name == v.Item.CharacterName)
-							&& Characters.First(c => c.Name == v.Item.CharacterName).IsExport
+							Characters.Any(c => string.Equals(c.Name, v.Item.CharacterName, StringComparison.Ordinal))
+							&& Characters.First(c => string.Equals(c.Name, v.Item.CharacterName, StringComparison.Ordinal)).IsExport
 						)
 						.ToList()
 						;
@@ -455,27 +457,31 @@ public sealed class MainWindowViewModel
 		var chara = item;
 		Debug.WriteLine($"SelectedChara: {chara.Name}, isExport: {chara.IsExport}");
 
-		IsShowPsdLayerSelector = chara.TachieType == YmmpTachieType.PsdTachie;
+		IsShowPsdLayerSelector = string.Equals(chara.TachieType, YmmpTachieType.PsdTachie, StringComparison.Ordinal);
 
-		if (chara.TachieType == YmmpTachieType.AnimationTachie)
+		if (string.Equals(chara.TachieType, YmmpTachieType.AnimationTachie, StringComparison.Ordinal))
 		{
 			//アニメーション立ち絵
-			var flowControl = await LoadLipSyncImagesAsync(chara);
-			if (!flowControl) { return; }
+			IsFileLoading = true;
+			await LoadLipSyncImagesAsync(chara);
+			IsFileLoading = false;
 		}
-		else if (chara.TachieType == YmmpTachieType.PsdTachie)
+		else if (string.Equals(chara.TachieType, YmmpTachieType.PsdTachie, StringComparison.Ordinal))
 		{
 			//psd
+			IsFileLoading = true;
 			var loading = Manager.Loading("PSD解析中", "解析しています…");
 
+			//reset
+			SelectedLayers = null;
+			SelectedLayerTree = [];
+
 			//psd版LipSyncImagesのリスト構築
-			var flowControl = await LoadLipSyncLayersAsync(chara);
+			await LoadLipSyncLayersAsync(chara);
 
 			Manager.Info("PSD解析終了", "PSDファイルの解析終了！", true);
-			//await Task.Delay(1000);
 			Manager.Dismiss(loading);
-			if (!flowControl) return;
-
+			IsFileLoading = false;
 			//psd layer selectorのツリー表示構築
 		}
 	}
@@ -552,8 +558,8 @@ public sealed class MainWindowViewModel
 				};
 				var p = Path.Combine(kuchiDir, Path.GetFileName(v.Value));
 				var kuchi =
-					kList.First(k => k.Path == p)
-					?? kList.FirstOrDefault(k => k.Path == chara.DefaultMouthImgPath);
+					kList.First(k => string.Equals(k.Path, p, StringComparison.Ordinal))
+					?? kList.FirstOrDefault(k => string.Equals(k.Path, chara.DefaultMouthImgPath, StringComparison.Ordinal));
 				var index = (kuchi is null) ? 0 : kList.IndexOf(kuchi);
 				return new LipSyncImageViewModel(
 					v.Key,
@@ -588,9 +594,9 @@ public sealed class MainWindowViewModel
 			return false;
 		}
 
-
-
-		var psd = await PsdUtil.LoadPsdAsync(path);
+		var psd = await PsdUtil
+			.LoadPsdAsync(path)
+			.ConfigureAwait(true);
 		var tree = PsdUtil.ParsePsdLayers(psd);
 
 		//デフォルトレイヤー表示をymmpの"TachieDefaultItemParameter"から取得して反映、なければPSDファイルそのまま
@@ -646,7 +652,7 @@ public sealed class MainWindowViewModel
 		{
 			foreach (var layer in tree)
 			{
-				layer.IsVisible = defs.Contains(layer.Cid);
+				layer.IsVisible = defs.Contains(layer.Cid, StringComparer.Ordinal);
 				layer.Children = SetDefaultLayer(layer.Children);
 			}
 			return [..tree];

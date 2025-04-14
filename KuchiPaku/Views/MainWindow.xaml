@@ -307,6 +307,7 @@
                       SelectedItem="{Binding SelectedLayers}"
                       VirtualizingStackPanel.IsVirtualizing="True"
                       Visibility="{c:Binding IsShowPsdLayerSelector}"
+                      IsEnabled="{c:Binding !IsFileLoading}"
                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                       >
 
@@ -314,7 +315,7 @@
                         <DataTemplate>
                           <StackPanel Orientation="Horizontal">
                             <TextBlock
-                              MinWidth="50"
+                              Width="40"
                               Margin="0,5"
                               Text="{Binding Name}"
                               />
@@ -420,6 +421,7 @@
                   ItemsSource="{Binding SelectedLayerTree}"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   Visibility="{c:Binding IsShowPsdLayerSelector}"
+                  IsEnabled="{c:Binding !IsFileLoading}"
                   >
                   <TreeView.ItemContainerStyle>
                     <Style TargetType="TreeViewItem">
