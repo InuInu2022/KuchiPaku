@@ -245,6 +245,7 @@ public static class PsdUtil
 	/// <summary>
 	/// 低解像度のサムネイルを素早く生成します
 	/// </summary>
+	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
 	public static async Task<Bitmap> CreateThumbnailFromTreeAsync(
 		IReadOnlyList<YmmPsdLayer> tree,
 		int width,
@@ -277,6 +278,7 @@ public static class PsdUtil
 		return thumbnail;
 	}
 
+	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
 	public static async Task<Bitmap> CreateImageFromLayerAsync(YmmPsdLayer layer)
 	{
 		// キャッシュキーを生成
@@ -322,56 +324,6 @@ public static class PsdUtil
 		}
 
 		return pixelData;
-	}
-
-	// 既存のCombineLayerRecursiveAsyncメソッドは残しておきます
-	static async ValueTask CombineLayerRecursiveAsync(
-		IEnumerable<YmmPsdLayer> layers,
-		Graphics g,
-		IEnumerable<string>? enabledLayers
-	)
-	{
-		// PSDレイヤーを描画順にフラットなリストとして収集する
-		var flattenedLayers = FlattenLayersInDrawOrder(layers).ToList();
-
-		// レイヤーを一度に処理する（最下層から最上層へ）
-		foreach (var layer in flattenedLayers)
-		{
-			if (layer.IsFolder)
-				continue; // フォルダはスキップ
-
-			if (layer.Image.Width == 0 || layer.Image.Height == 0)
-				continue;
-
-			// レイヤーが有効かチェック
-			if (!enabledLayers?.Contains(layer.Cid, StringComparer.Ordinal) ?? false)
-			{
-				continue;
-			}
-
-			// レイヤーの描画処理
-			var pixelData = await ReadImageAsync(layer).ConfigureAwait(false);
-
-			// すべてのピクセルが透明の場合は再読み込みを試みる
-			if (pixelData.All(p => p == 0))
-			{
-				pixelData = await ReadImageAsync(layer).ConfigureAwait(false);
-
-				// デバッグ情報の追加
-				Debug.WriteLine(
-					$"Re-reading layer {layer.Name}: All pixels transparent after retry? {pixelData.All(p => p == 0)}"
-				);
-			}
-
-			using var layerBitmap = CreateBitmapFromPixelData(
-				pixelData,
-				layer.Image.Width,
-				layer.Image.Height
-			);
-
-			// レイヤーのビットマップを合成
-			g.DrawImage(layerBitmap, layer.Record.Left, layer.Record.Top);
-		}
 	}
 
 	// 縮小描画対応版のCombineLayerRecursiveAsync
