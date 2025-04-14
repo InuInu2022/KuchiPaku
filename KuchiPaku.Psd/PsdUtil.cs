@@ -261,34 +261,51 @@ public static class PsdUtil
 		int maxThumbHeight = 300
 	)
 	{
-		// 縮小率の計算
-		double scaleRatio = Math.Min(
-			(double)maxThumbWidth / width,
-			(double)maxThumbHeight / height
-		);
+		// 大きく異なる場合は直接小さいサイズを生成
+		double scaleFactor = Math.Min((double)maxThumbWidth / width, (double)maxThumbHeight / height);
 
-		// スケール後のサイズ
-		int thumbWidth = (int)(width * scaleRatio);
-		int thumbHeight = (int)(height * scaleRatio);
+		if (scaleFactor < 0.3)
+		{
+			// スケールが小さすぎる場合は直接小さいサイズで生成
+			int thumbWidth = (int)(width * scaleFactor);
+			int thumbHeight = (int)(height * scaleFactor);
 
-		var thumbnail = new Bitmap(thumbWidth, thumbHeight);
+			return await CreateImageFromTreeAsync(
+				tree, thumbWidth, thumbHeight, enabledLayers, progress: null
+			).ConfigureAwait(false);
+		}
+		else
+		{
+			// 縮小率の計算
+			double scaleRatio = Math.Min(
+				(double)maxThumbWidth / width,
+				(double)maxThumbHeight / height
+			);
 
-		using var g = Graphics.FromImage(thumbnail);
-		g.Clear(Color.Transparent);
-		g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
-		g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+			// スケール後のサイズ
+			int thumbWidth = (int)(width * scaleRatio);
+			int thumbHeight = (int)(height * scaleRatio);
 
-		await CombineLayerRecursiveWithScaleAsync(tree, g, enabledLayers, scaleRatio)
-			.ConfigureAwait(false);
+			var thumbnail = new Bitmap(thumbWidth, thumbHeight);
 
-		return thumbnail;
+			using var g = Graphics.FromImage(thumbnail);
+			g.Clear(Color.Transparent);
+			g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+			g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+
+			await CombineLayerRecursiveWithScaleAsync(tree, g, enabledLayers, scaleRatio)
+				.ConfigureAwait(false);
+
+			return thumbnail;
+		}
+
 	}
 
 	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
 	public static async Task<Bitmap> CreateImageFromLayerAsync(YmmPsdLayer layer)
 	{
 		// キャッシュキーを生成
-		string cacheKey = $"{layer.Cid}_{layer.IsVisible}";
+		string cacheKey = layer.Cid;
 
 		// キャッシュから取得を試みる
 		if (
