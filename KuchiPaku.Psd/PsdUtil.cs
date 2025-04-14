@@ -36,10 +36,13 @@ public static class PsdUtil
 	// 既存のlock用のSemaphoreSlimとは別に、レイヤー結果用のものを追加
 	private static readonly SemaphoreSlim _resultLock = new(1, 1);
 
+	// 追加のキャッシュ
+	private static readonly ConcurrentDictionary<string, byte[]> _rawDataCache =
+		new(StringComparer.Ordinal);
+
 	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
 	public static async ValueTask<PsdFile> LoadPsdAsync(string path)
 	{
-		// 既存のコードを維持
 		if (!Path.Exists(path))
 		{
 			throw new FileNotFoundException($"file: {path} is not found!");
@@ -308,25 +311,36 @@ public static class PsdUtil
 
 	static async Task<byte[]> ReadImageAsync(YmmPsdLayer layer)
 	{
+		string cacheKey = $"raw_{layer.Cid}";
+
+		// メモリ内キャッシュを先にチェック
+		if (_rawDataCache.TryGetValue(cacheKey, out var cachedData))
+		{
+			return cachedData;
+		}
+
 		await _lock.WaitAsync().ConfigureAwait(false);
-		byte[] pixelData = [];
 		try
 		{
+			// ダブルチェック（他のスレッドがすでに読み込んだ可能性）
+			if (_rawDataCache.TryGetValue(cacheKey, out cachedData))
+			{
+				return cachedData;
+			}
+
 			var sw = Stopwatch.StartNew();
-			pixelData = await Task.Run(() => layer.Image.Read()).ConfigureAwait(false);
+			byte[] pixelData = await Task.Run(() => layer.Image.Read()).ConfigureAwait(false);
 			sw.Stop();
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine($"Error reading layer {layer.Name}: {ex.Message}");
-			throw;
+
+			// キャッシュに保存
+			_rawDataCache[cacheKey] = pixelData;
+
+			return pixelData;
 		}
 		finally
 		{
 			_lock.Release();
 		}
-
-		return pixelData;
 	}
 
 	// 縮小描画対応版のCombineLayerRecursiveAsync
