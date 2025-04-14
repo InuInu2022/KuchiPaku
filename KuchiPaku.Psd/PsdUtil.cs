@@ -150,8 +150,9 @@ public static class PsdUtil
 			},
 			async (layer, ct) =>
 			{
-				string cacheKey = layer.Cid;
-				var layerBitmap = await GetOrCreateBitmapAsync(cacheKey, layer, ReadImageAsync);
+				string cacheKey = $"{layer.Cid}_{layer.Name}_{layer.Identifier}";
+				var layerBitmap = await GetOrCreateBitmapAsync(cacheKey, layer, ReadImageAsync)
+					.ConfigureAwait(false);
 
 				// ロックの取得を試みる（非同期版）
 				await _resultLock.WaitAsync(ct).ConfigureAwait(false);
@@ -308,7 +309,7 @@ public static class PsdUtil
 	public static async Task<Bitmap> CreateImageFromLayerAsync(YmmPsdLayer layer)
 	{
 		// キャッシュキーを生成
-		string cacheKey = layer.Cid;
+		var cacheKey = $"{layer.Cid}_{layer.Identifier}";
 
 		// キャッシュから取得を試みる
 		if (
@@ -331,7 +332,7 @@ public static class PsdUtil
 
 	static async Task<byte[]> ReadImageAsync(YmmPsdLayer layer)
 	{
-		string cacheKey = $"raw_{layer.Cid}";
+		var cacheKey = $"raw_{layer.Cid}_{layer.Identifier}";
 
 		// メモリ内キャッシュを先にチェック
 		if (_rawDataCache.TryGetValue(cacheKey, out var cachedData))
@@ -348,9 +349,7 @@ public static class PsdUtil
 				return cachedData;
 			}
 
-			var sw = Stopwatch.StartNew();
 			byte[] pixelData = await Task.Run(() => layer.Image.Read()).ConfigureAwait(false);
-			sw.Stop();
 
 			// キャッシュに保存
 			_rawDataCache[cacheKey] = pixelData;
@@ -432,48 +431,78 @@ public static class PsdUtil
 		}
 	}
 
-	static Bitmap CreateBitmapFromPixelData(byte[] pixelData, int width, int height)
+	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
+	static unsafe Bitmap CreateBitmapFromPixelData(byte[] pixelData, int width, int height)
 	{
 		// ピクセルデータのサイズが大きい場合は解像度を下げる
-		const int maxPixels = 4000 * 3000; // 適切なしきい値
+		const int maxPixels = 4000 * 4000; // しきい値を増やす
 
 		if (width * height > maxPixels)
 		{
 			// 大きすぎる画像は解像度を下げる
 			double scale = Math.Sqrt((double)maxPixels / (width * height));
-			int newWidth = (int)(width * scale);
-			int newHeight = (int)(height * scale);
+			int newWidth = Math.Max(1, (int)(width * scale));
+			int newHeight = Math.Max(1, (int)(height * scale));
 
 			Debug.WriteLine(
 				$"Downscaling large image from {width}x{height} to {newWidth}x{newHeight}"
 			);
 
 			var scaledBitmap = new Bitmap(newWidth, newHeight, PixelFormat.Format32bppArgb);
-
-			// 元のビットマップを生成
-			var originalBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-			var rect = new Rectangle(0, 0, width, height);
-			var data = originalBitmap.LockBits(
-				rect,
-				ImageLockMode.WriteOnly,
-				originalBitmap.PixelFormat
-			);
-			Marshal.Copy(
-				pixelData,
-				0,
-				data.Scan0,
-				Math.Min(pixelData.Length, Math.Abs(data.Stride) * height)
-			);
-			originalBitmap.UnlockBits(data);
-
-			// 縮小
-			using (Graphics g = Graphics.FromImage(scaledBitmap))
+			fixed (byte* pixelDataPtr = pixelData)
 			{
+				using var originalBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+				var rect = new Rectangle(0, 0, width, height);
+				var data = originalBitmap.LockBits(
+					rect,
+					ImageLockMode.WriteOnly,
+					originalBitmap.PixelFormat
+				);
+
+				try
+				{
+					// ストライドを考慮して各行を個別にコピー
+					for (int y = 0; y < height; y++)
+					{
+						int sourceOffset = y * width * 4; // 4バイト/ピクセル (ARGB)
+						int destOffset = y * data.Stride;
+
+						// 1行分のデータをコピー
+						if (sourceOffset + width * 4 <= pixelData.Length)
+						{
+							Marshal.Copy(
+								pixelData,
+								sourceOffset,
+								data.Scan0 + destOffset,
+								width * 4
+							);
+						}
+					}
+				}
+				finally
+				{
+					originalBitmap.UnlockBits(data);
+				}
+
+				// 縮小
+				using Graphics g = Graphics.FromImage(scaledBitmap);
+				g.Clear(Color.Transparent); // 透明背景を明示的に設定
 				g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-				g.DrawImage(originalBitmap, 0, 0, newWidth, newHeight);
+				g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
+
+				// ImageAttributesを使用して透明度を保持
+				using var imageAttr = new ImageAttributes();
+				imageAttr.SetColorMatrix(new ColorMatrix { Matrix33 = 1.0f }); // アルファ値を保持
+
+				g.DrawImage(
+					originalBitmap,
+					new Rectangle(0, 0, newWidth, newHeight),
+					0, 0, width, height,
+					GraphicsUnit.Pixel,
+					imageAttr
+				);
 			}
 
-			originalBitmap.Dispose(); // 元の大きなビットマップを破棄
 			return scaledBitmap;
 		}
 
@@ -481,12 +510,15 @@ public static class PsdUtil
 		var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 		var rectNormal = new Rectangle(0, 0, width, height);
 		var dataNormal = bitmap.LockBits(rectNormal, ImageLockMode.WriteOnly, bitmap.PixelFormat);
+
+		// 高速コピー
 		Marshal.Copy(
 			pixelData,
 			0,
 			dataNormal.Scan0,
 			Math.Min(pixelData.Length, Math.Abs(dataNormal.Stride) * height)
 		);
+
 		bitmap.UnlockBits(dataNormal);
 
 		return bitmap;

@@ -23,8 +23,6 @@ public record YmmPsdLayer(
 	public bool IsVisible { get; set; }
 		= (Layer.Record.LayerFlags & LayerFlags.Visible) != LayerFlags.Visible;
 
-	//public bool IsOverrideLayer { get; set; }
-
 	public string Name => Layer.Record
 		.AdditionalLayerInformations
 		.OfType<UnicodeLayerName>()
@@ -35,4 +33,6 @@ public record YmmPsdLayer(
 	public bool IsDivider => Layer.IsDivider();
 
 	public bool IsNormalLayer => !Layer.IsFolderLike();
+
+	public string Identifier => $"{Cid}_{Name}_{Image.Width}x{Image.Height}";
 }
