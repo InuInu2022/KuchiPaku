@@ -181,17 +181,20 @@ public static class PsdUtil
 			.ToList();
 
 		// 3. Graphics オブジェクトを使った描画
-		using (Graphics g = Graphics.FromImage(finalBitmap))
-		{
-			g.Clear(System.Drawing.Color.Transparent);
-			g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+		using var g = Graphics.FromImage(finalBitmap);
 
-			foreach (var (layer, bitmap) in orderedResults)
+		g.Clear(Color.Transparent);
+		g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+		g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+		g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+		g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+		g.PageUnit = GraphicsUnit.Pixel;  // ピクセル単位で処理
+
+		foreach (var (layer, bitmap) in orderedResults)
+		{
+			using (bitmap)
 			{
-				using (bitmap) // 使用後にビットマップを破棄
-				{
-					g.DrawImage(bitmap, layer.Record.Left, layer.Record.Top);
-				}
+				g.DrawImageUnscaled(bitmap, layer.Record.Left, layer.Record.Top);
 			}
 		}
 
