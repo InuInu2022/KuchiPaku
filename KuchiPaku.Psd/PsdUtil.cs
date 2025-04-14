@@ -85,6 +85,7 @@ public static class PsdUtil
 	/// <param name="enabledLayers">表示するレイヤーのID一覧</param>
 	/// <param name="progress">進捗通知用オブジェクト (0-100)</param>
 	/// <returns>合成された画像</returns>
+	[SuppressMessage("Usage", "SMA0040:Missing Using Statement", Justification = "<保留中>")]
 	public static async Task<Bitmap> CreateImageFromTreeAsync(
 		IReadOnlyList<YmmPsdLayer> tree,
 		int width,
@@ -97,7 +98,7 @@ public static class PsdUtil
 		progress?.Report(0);
 
 		// まず出力用ビットマップを生成
-		var finalBitmap = new Bitmap(width, height);
+		var finalBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 
 		// 表示するレイヤーのIDセットを作成
 		var enabledLayerSet =
