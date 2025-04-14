@@ -156,10 +156,13 @@ public static class PsdUtil
 				{
 					layerResults.Add((layer, layerBitmap));
 
-					// 進捗を更新
-					processedLayers++;
-					int progressValue = (int)((float)processedLayers / totalLayers * 100);
-					progress?.Report(progressValue);
+					// 進捗報告を減らしてオーバーヘッドを削減
+					int progressStep = Math.Max(1, totalLayers / 20); // 全体の5%ごとに報告
+					if (processedLayers % progressStep == 0 || processedLayers == totalLayers)
+					{
+						int progressValue = (int)((float)processedLayers / totalLayers * 100);
+						progress?.Report(progressValue);
+					}
 				}
 				finally
 				{
